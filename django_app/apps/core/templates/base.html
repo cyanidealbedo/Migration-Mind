@@ -1,0 +1,157 @@
+<!-- django_app/apps/core/templates/base.html -->
+{% load static %}
+<!doctype html>
+<html lang="en" data-bs-theme="blue-theme">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MigrationMind | Living Playbook</title>
+  
+  <link rel="icon" href="{% static 'assets/images/favicon-32x32.png' %}" type="image/png">
+  <link href="{% static 'assets/css/pace.min.css' %}" rel="stylesheet">
+  <script src="{% static 'assets/js/pace.min.js' %}"></script>
+
+  <link href="{% static 'assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css' %}" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="{% static 'assets/plugins/metismenu/metisMenu.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'assets/plugins/metismenu/mm-vertical.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'assets/plugins/simplebar/css/simplebar.css' %}">
+  
+  <link href="{% static 'assets/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined" rel="stylesheet">
+  
+  <link href="{% static 'assets/css/bootstrap-extended.css' %}" rel="stylesheet">
+  <link href="{% static 'sass/main.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/css/horizontal-menu.css' %}" rel="stylesheet">
+  <link href="{% static 'sass/dark-theme.css' %}" rel="stylesheet">
+  <link href="{% static 'sass/blue-theme.css' %}" rel="stylesheet">
+  <link href="{% static 'sass/semi-dark.css' %}" rel="stylesheet">
+  <link href="{% static 'sass/bordered-theme.css' %}" rel="stylesheet">
+  <link href="{% static 'sass/responsive.css' %}" rel="stylesheet">
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+  <!--start header-->
+  <header class="top-header">
+    <nav class="navbar navbar-expand align-items-center justify-content-between gap-4 container-xxl px-4">
+      <div class="logo-header d-none d-xl-flex align-items-center gap-2">
+        <div class="logo-icon">
+          <img src="{% static 'assets/images/logo-icon.png' %}" class="logo-img" width="45" alt="">
+        </div>
+        <div class="logo-name">
+          <h5 class="mb-0">MigrationMind</h5>
+        </div>
+      </div>
+      <div class="btn-toggle d-xl-none" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+        <a href="javascript:;"><i class="material-icons-outlined">menu</i></a>
+      </div>
+      
+      <ul class="navbar-nav gap-1 nav-right-links align-items-center ms-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" data-bs-auto-close="outside"
+            data-bs-toggle="dropdown" href="javascript:;"><i class="material-icons-outlined">notifications</i>
+            <span class="badge-notify">0</span>
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a href="javascript:;" class="dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown">
+             <img src="{% static 'assets/images/avatars/01.png' %}" class="rounded-circle p-1 border" width="45" height="45" alt="">
+          </a>
+          <div class="dropdown-menu dropdown-user dropdown-menu-end shadow">
+            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="javascript:;"><i
+            class="material-icons-outlined">power_settings_new</i>Logout</a>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <!--end top header-->
+
+  <!--navigation-->
+  <div class="primary-menu">
+    <nav class="navbar navbar-expand-xl align-items-center container-xxl px-4">
+    <div class="offcanvas offcanvas-start w-260" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+    <div class="offcanvas-header border-bottom h-70">
+      <div class="d-flex align-items-center gap-2">
+        <div class="">
+          <img src="{% static 'assets/images/logo-icon.png' %}" class="logo-icon" width="45" alt="logo icon">
+        </div>
+        <div class="">
+          <h4 class="logo-text">MigrationMind</h4>
+        </div>
+      </div>
+      <a href="javascript:;" class="primaery-menu-close" data-bs-dismiss="offcanvas">
+        <i class="material-icons-outlined">close</i>
+      </a>
+    </div>
+    <div class="offcanvas-body p-0">
+      <ul class="navbar-nav align-items-center flex-grow-1">
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/">
+            <div class="parent-icon"><i class="material-icons-outlined">home</i></div>
+            <div class="menu-title d-flex align-items-center">Upload / Start</div>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/assessments/">
+            <div class="parent-icon"><i class='material-icons-outlined'>apps</i></div>
+            <div class="menu-title d-flex align-items-center">Assessments</div>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/governance/">
+            <div class="parent-icon"><i class='material-icons-outlined'>gavel</i></div>
+            <div class="menu-title d-flex align-items-center">Governance & Sign-off</div>
+          </a>
+        </li>
+        
+      </ul>
+    </div>
+    </div>
+    </nav>
+  </div>
+  <!--end navigation-->
+
+  <!--start main wrapper (pushed down to clear native fixed header) -->
+  <main class="main-wrapper" style="padding-top: 140px;">
+    <div class="main-content container-xxl">
+      
+      <!-- Content Block -->
+      {% block content %}
+      {% endblock %}
+      <!-- End Content Block -->
+
+    </div>
+  </main>
+  <!--end main wrapper-->
+
+  <!--start overlay-->
+  <div class="overlay btn-toggle"></div>
+  <!--end overlay-->
+
+   <!--start footer-->
+   <footer class="page-footer">
+     <div class="container-xxl px-4 text-center">
+      <p class="mb-0">Powered by Azure AI Foundry, Azure MCP, and Microsoft Agent Framework.</p>
+     </div>
+  </footer>
+  <!--end footer-->
+
+  <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'assets/js/jquery.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js' %}"></script>
+  <script src="{% static 'assets/plugins/metismenu/metisMenu.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/simplebar/js/simplebar.min.js' %}"></script>
+  <script src="{% static 'assets/js/main.js' %}"></script>
+  
+  {% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

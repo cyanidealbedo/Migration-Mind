@@ -1,0 +1,17 @@
+asgiref==3.11.1
+azure-core==1.38.2
+azure-servicebus==7.14.3
+certifi==2026.2.25
+charset-normalizer==3.4.5
+Django==5.2.12
+django-environ==0.13.0
+djangorestframework==3.16.1
+idna==3.11
+isodate==0.7.2
+mysqlclient==2.2.8
+PyMySQL==1.1.2
+python-dotenv==1.2.2
+requests==2.32.5
+sqlparse==0.5.5
+typing_extensions==4.15.0
+urllib3==2.6.3

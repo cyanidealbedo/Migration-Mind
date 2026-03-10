@@ -1,0 +1,9 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "SERVICE_BUS_CONNECTION_STRING": "Endpoint=sb://mig-mind-service-bus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=BfiKlZLNJtMKC4KbMFcNIz3YaS4Ax6gbc+ASbE7NF4k=",
+    "DATABASE_URL": "mysql://adriantennant:admin123%23@startup-flexserver-db.mysql.database.azure.com:3306/migrationmind"
+  }
+}
