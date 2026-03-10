@@ -1,1 +1,4 @@
 .aider*
+agent_runtime/venv
+django_app/venv
+
