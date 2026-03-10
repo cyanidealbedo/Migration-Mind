@@ -1,81 +1,158 @@
-<!-- django_app/apps/core/templates/core/assessments_list.html -->
 {% extends 'base.html' %}
 {% load static %}
 
+{% block nav_assess %}active{% endblock %}
+
+{% block extra_styles %}
+.mini-spin {
+  width: 10px; height: 10px;
+  border: 1.5px solid var(--amber-mid); border-top-color: var(--amber-d);
+  border-radius: 50%; animation: spin 0.9s linear infinite; display: inline-block;
+}
+
+.row-action {
+  opacity: 0; transform: translateX(4px);
+  transition: opacity 0.18s, transform 0.18s;
+}
+.tbl-mm tbody tr:hover .row-action { opacity: 1; transform: translateX(0); }
+
+.id-chip {
+  font-family: var(--f-m); font-size: 12px; color: var(--blue-d);
+  background: var(--blue-pale); border: 1px solid var(--blue-mid);
+  border-radius: var(--r-sm); padding: 3px 8px; display: inline-block;
+  transition: all 0.15s;
+}
+.tbl-mm tbody tr:hover .id-chip { background: var(--blue-mid); }
+
+.stat-strip {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: var(--border); border-radius: var(--r-lg); overflow: hidden;
+  margin-bottom: 2rem;
+}
+.stat-cell {
+  background: var(--white); padding: 1.25rem 1.5rem; transition: background 0.15s;
+}
+.stat-cell:hover { background: var(--teal-pale); }
+.stat-val { font-family: var(--f-d); font-size: 26px; font-weight: 800; letter-spacing: -1px; }
+.stat-lbl { font-family: var(--f-m); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-4); margin-top: 3px; }
+
+.empty-cell { text-align: center; padding: 4rem 2rem; }
+.empty-icon {
+  width: 60px; height: 60px; border-radius: var(--r-lg);
+  background: var(--s1); border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.25rem; font-size: 28px; color: var(--ink-4);
+  transition: all 0.22s var(--spring);
+}
+.empty-icon:hover { transform: scale(1.08); border-color: var(--teal); color: var(--teal); }
+{% endblock %}
+
 {% block content %}
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-4">
-    <div class="breadcrumb-title pe-3">Assessments</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="/"><i class="material-icons-outlined fs-5">home</i></a></li>
-                <li class="breadcrumb-item active" aria-current="page">All Assessments</li>
-            </ol>
-        </nav>
+
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4 a-up">
+  <div>
+    <div class="mm-bc">
+      <a href="/"><i class="ph ph-house" style="font-size:15px;"></i></a>
+      <span class="mm-bc-sep">›</span>
+      <span style="color:var(--ink-3);">Assessments</span>
     </div>
-    <div class="ms-auto">
-        <a href="/" class="btn btn-primary d-flex align-items-center gap-2 rounded-pill px-4">
-            <i class="material-icons-outlined">add</i> New Upload
-        </a>
-    </div>
+    <h1 class="page-title">Assessment History</h1>
+    <p class="page-sub">All uploaded Azure Migrate exports and agent-generated playbooks</p>
+  </div>
+  <a href="/" class="btn-mm btn-teal a-up a-up-1">
+    <i class="ph ph-plus-circle"></i> New Upload
+  </a>
 </div>
 
-<div class="card rounded-4 shadow-sm border-0">
-    <div class="card-header bg-white border-bottom p-4">
-        <h5 class="mb-0 fw-bold">Assessment History</h5>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table align-middle table-hover mb-0">
-                <thead class="bg-light">
-                <tr>
-                    <th class="py-3 px-4">Assessment ID</th>
-                    <th class="py-3">Name</th>
-                    <th class="py-3">Status</th>
-                    <th class="py-3">Date Created</th>
-                    <th class="py-3 text-end px-4">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for assessment in assessments %}
-                <tr>
-                    <td class="px-4 fw-bold font-monospace text-primary">{{ assessment.id }}</td>
-                    <td>{{ assessment.name }}</td>
-                    <td>
-                        {% if assessment.status == 'playbook_ready' %}
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2">Playbook Ready</span>
-                        {% elif assessment.status == 'processing' %}
-                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3 py-2">
-                                <span class="spinner-border spinner-border-sm me-1" role="status"></span> Agents Running
-                            </span>
-                        {% else %}
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3 py-2">{{ assessment.get_status_display }}</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ assessment.created_at|date:"M d, Y h:i A" }}</td>
-                    <td class="text-end px-4">
-                        {% if assessment.status == 'playbook_ready' %}
-                        <a href="{% url 'core:playbook_detail' assessment.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                            Open Playbook
-                        </a>
-                        {% else %}
-                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" disabled>
-                            Wait for Agents
-                        </button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-5 text-muted">
-                        <i class="material-icons-outlined fs-1 mb-3 opacity-50">inbox</i>
-                        <br>No assessments found. Upload one to get started!
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+<!-- Stat strip -->
+<div class="stat-strip a-up a-up-2">
+  <div class="stat-cell">
+    <p class="stat-val" style="color:var(--ink);">{{ assessments|length }}</p>
+    <p class="stat-lbl">Total Assessments</p>
+  </div>
+  <div class="stat-cell">
+    <p class="stat-val" style="color:var(--teal-d);">{{ assessments|length }}</p>
+    <p class="stat-lbl">Playbooks Ready</p>
+  </div>
+  <div class="stat-cell">
+    <p class="stat-val" style="color:var(--amber-d);">0</p>
+    <p class="stat-lbl">In Progress</p>
+  </div>
 </div>
+
+<div class="card-mm a-up a-up-3" style="overflow:hidden;">
+  <div style="padding:1.25rem 1.5rem;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:9px;">
+      <div style="width:28px;height:28px;border-radius:7px;background:var(--blue-pale);border:1.5px solid var(--blue-mid);display:flex;align-items:center;justify-content:center;">
+        <i class="ph ph-squares-four" style="font-size:16px;color:var(--blue-d);"></i>
+      </div>
+      <span style="font-family:var(--f-d);font-size:14px;font-weight:700;color:var(--ink);">All Assessments</span>
+    </div>
+    <span style="font-family:var(--f-m);font-size:11.5px;color:var(--ink-4);">{{ assessments|length }} records</span>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table class="tbl-mm">
+      <thead>
+        <tr>
+          <th>Assessment ID</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th style="text-align:right;padding-right:1.5rem;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for assessment in assessments %}
+        <tr>
+          <td><span class="id-chip">{{ assessment.id }}</span></td>
+          <td>
+            <span style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ assessment.name }}</span>
+          </td>
+          <td>
+            {% if assessment.status == 'playbook_ready' %}
+              <span class="badge-mm badge-teal">
+                <i class="ph ph-check-circle" style="font-size:12px;"></i> Playbook Ready
+              </span>
+            {% elif assessment.status == 'processing' %}
+              <span class="badge-mm badge-amber">
+                <span class="mini-spin"></span> Agents Running
+              </span>
+            {% else %}
+              <span class="badge-mm badge-gray">{{ assessment.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span style="font-family:var(--f-m);font-size:12px;color:var(--ink-2);">{{ assessment.created_at|date:"M d, Y" }}</span><br>
+            <span style="font-family:var(--f-m);font-size:11px;color:var(--ink-4);">{{ assessment.created_at|date:"h:i A" }}</span>
+          </td>
+          <td style="text-align:right;padding-right:1.5rem;">
+            {% if assessment.status == 'playbook_ready' %}
+            <a href="{% url 'core:playbook_detail' assessment.id %}" class="btn-mm btn-ghost row-action" style="font-size:12.5px;padding:6px 14px;">
+              <i class="ph ph-arrow-square-out" style="font-size:15px;"></i> Open Playbook
+            </a>
+            {% else %}
+            <span style="font-family:var(--f-m);font-size:12px;color:var(--ink-5);">Processing...</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5">
+            <div class="empty-cell">
+              <div class="empty-icon"><i class="ph ph-inbox"></i></div>
+              <p style="font-family:var(--f-d);font-size:16px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">No assessments yet</p>
+              <p style="font-size:13px;color:var(--ink-3);margin-bottom:1.25rem;max-width:320px;margin-inline:auto;">Upload an Azure Migrate export to kick off the agent pipeline and generate your first playbook.</p>
+              <a href="/" class="btn-mm btn-teal" style="display:inline-flex;">
+                <i class="ph ph-upload-simple"></i> Upload Assessment
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 {% endblock %}

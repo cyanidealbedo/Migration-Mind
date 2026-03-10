@@ -1,83 +1,252 @@
-<!-- django_app/apps/core/templates/core/governance.html -->
 {% extends 'base.html' %}
 {% load static %}
 
+{% block nav_gov %}active{% endblock %}
+
+{% block extra_styles %}
+/* ── HERO BANNER ── */
+.gov-hero {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--violet) 100%);
+  border-radius: var(--r-xl); padding: 2rem;
+  position: relative; overflow: hidden;
+  margin-bottom: 2rem;
+}
+.gov-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='white' fill-opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.gov-hero-icon {
+  width: 52px; height: 52px; border-radius: var(--r-lg);
+  background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: white; flex-shrink: 0;
+  backdrop-filter: blur(8px);
+}
+
+/* ── STAT ROW ── */
+.gov-stats {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 12px; margin-bottom: 2rem;
+}
+.gov-stat {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xl); padding: 1.25rem;
+  text-align: center; transition: all 0.22s var(--spring);
+}
+.gov-stat:hover { box-shadow: var(--sh-md); transform: translateY(-3px); }
+.gov-stat-val { font-family: var(--f-d); font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+.gov-stat-lbl { font-family: var(--f-m); font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-4); margin-top: 4px; }
+
+/* ── QUEUE ITEM ── */
+.queue-item {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xl); overflow: hidden;
+  transition: all 0.22s var(--spring); margin-bottom: 1rem;
+}
+.queue-item:hover { box-shadow: var(--sh-md); transform: translateY(-2px); }
+
+.queue-accent { height: 4px; width: 100%; }
+.qa-amber  { background: linear-gradient(90deg, var(--amber), transparent 70%); }
+.qa-teal   { background: linear-gradient(90deg, var(--teal), transparent 70%); }
+.qa-coral  { background: linear-gradient(90deg, var(--coral), transparent 70%); }
+
+.queue-body { padding: 1.5rem; }
+
+.queue-meta {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.queue-meta a {
+  font-family: var(--f-m); font-size: 12px; color: var(--blue-d); text-decoration: none;
+  background: var(--blue-pale); border: 1px solid var(--blue-mid);
+  border-radius: 4px; padding: 1px 7px; transition: all 0.15s;
+}
+.queue-meta a:hover { background: var(--blue-mid); }
+.queue-meta-sep { color: var(--ink-5); font-size: 13px; }
+
+.queue-title { font-family: var(--f-d); font-size: 16px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 8px; }
+.queue-desc { font-size: 13.5px; color: var(--ink-2); line-height: 1.7; margin-bottom: 1rem; }
+.queue-desc code {
+  font-family: var(--f-m); font-size: 12.5px;
+  background: var(--s2); border: 1px solid var(--border-d);
+  border-radius: 4px; padding: 1px 6px; color: var(--blue-d);
+}
+
+.queue-rec {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 12px;
+  font-size: 13px; color: var(--ink-2); line-height: 1.65;
+}
+.queue-rec-label {
+  font-family: var(--f-m); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-4); margin-bottom: 5px;
+  display: flex; align-items: center; gap: 5px;
+}
+
+.queue-actions { display: flex; flex-direction: column; gap: 8px; }
+
+/* Approved item */
+.queue-item.approved { opacity: 0.65; }
+.queue-item.approved:hover { opacity: 0.85; }
+
+@media (max-width: 768px) {
+  .gov-stats { grid-template-columns: 1fr 1fr; }
+  .queue-actions { flex-direction: row; }
+}
+{% endblock %}
+
 {% block content %}
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-4">
-    <div class="breadcrumb-title pe-3">Governance</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="/"><i class="material-icons-outlined fs-5">home</i></a></li>
-                <li class="breadcrumb-item active" aria-current="page">Sign-off Queue</li>
-            </ol>
-        </nav>
-    </div>
+
+<!-- Page header -->
+<div class="a-up mb-4">
+  <div class="mm-bc">
+    <a href="/"><i class="ph ph-house" style="font-size:15px;"></i></a>
+    <span class="mm-bc-sep">›</span>
+    <span style="color:var(--ink-3);">Governance & Sign-off</span>
+  </div>
+  <h1 class="page-title">Governance & Sign-off</h1>
+  <p class="page-sub">Human-in-the-loop authorization queue for compliance-flagged migration actions</p>
 </div>
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card bg-primary bg-opacity-10 border-0 rounded-4">
-            <div class="card-body p-4 d-flex align-items-center justify-content-between">
-                <div>
-                    <h4 class="fw-bold text-primary mb-1">Human-in-the-Loop Sign-off</h4>
-                    <p class="mb-0 text-primary">The AI Risk Officer has flagged the following migration actions as requiring human authorization based on deterministic compliance rules.</p>
-                </div>
-                <i class="material-icons-outlined text-primary" style="font-size: 3rem;">admin_panel_settings</i>
-            </div>
-        </div>
+<!-- Hero Banner -->
+<div class="gov-hero a-up a-up-1">
+  <div style="display:flex;align-items:flex-start;gap:1.25rem;">
+    <div class="gov-hero-icon">
+      <i class="ph ph-shield-check"></i>
     </div>
+    <div>
+      <p style="font-family:var(--f-d);font-weight:800;font-size:17px;color:white;margin-bottom:5px;letter-spacing:-0.4px;">
+        Human-in-the-Loop Authorization
+      </p>
+      <p style="font-size:13.5px;color:rgba(255,255,255,0.78);max-width:600px;line-height:1.65;margin:0;">
+        The AI Risk Officer flags migration actions that require explicit human sign-off based on deterministic compliance rules. Every decision is cryptographically logged to the immutable audit trail.
+      </p>
+    </div>
+    <div style="margin-left:auto;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+      <span style="font-family:var(--f-m);font-size:10.5px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">Connected to</span>
+      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:6px 12px;">
+        <i class="ph ph-cloud" style="font-size:16px;color:white;"></i>
+        <span style="font-family:var(--f-m);font-size:12px;color:white;">Azure AI Foundry</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="row">
-    <!-- Pending Item 1 -->
-    <div class="col-12 mb-4">
-        <div class="card rounded-4 shadow-sm border-warning border-start border-5">
-            <div class="card-body p-4">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <div class="d-flex align-items-center gap-3 mb-2">
-                            <span class="badge bg-warning text-dark rounded-pill px-3">Pending Authorization</span>
-                            <span class="text-muted small">Assessment: <a href="#">asm-04f1fae3</a> | Wave 3</span>
-                        </div>
-                        <h5 class="fw-bold">Acceptable Downtime Exceeded (SLA Warning)</h5>
-                        <p class="text-muted mb-2">
-                            The Architect Agent scheduled <code>Inventory-SQL</code> for offline migration. The Surveyor Agent determined the data size (4.2 TB) will take 6.5 hours to transfer, exceeding the strict 4-hour maintenance window rule.
-                        </p>
-                        <div class="bg-light p-3 rounded-3 text-dark small">
-                            <strong>AI Recommendation:</strong> Do you authorize exceeding the maintenance window by 2.5 hours, or should the Architect Agent regenerate the wave plan using continuous Azure SQL Data Sync?
-                        </div>
-                    </div>
-                    <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex flex-column gap-2">
-                        <button class="btn btn-outline-danger rounded-pill fw-bold" onclick="alert('Regenerating wave plan via orchestrator...')">Reject (Regenerate Plan)</button>
-                        <button class="btn btn-success rounded-pill fw-bold" onclick="this.innerHTML='<i class=\'material-icons-outlined align-middle\'>check</i> Signed Off'; this.classList.add('disabled');">Approve Downtime Exception</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Approved Item (History) -->
-    <div class="col-12 mb-4">
-        <div class="card rounded-4 shadow-sm border-success border-start border-5 opacity-75">
-            <div class="card-body p-4">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <div class="d-flex align-items-center gap-3 mb-2">
-                            <span class="badge bg-success rounded-pill px-3">Signed Off</span>
-                            <span class="text-muted small">Assessment: <a href="#">asm-12a9b34c</a> | Wave 1</span>
-                        </div>
-                        <h5 class="fw-bold text-success">GDPR Region Exception</h5>
-                        <p class="text-muted mb-0">
-                            Approved moving <code>Customer-Redis</code> to <code>East US</code> for staging purposes. Authorized by Jhon Anderson on Oct 24, 2025.
-                        </p>
-                    </div>
-                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        <a href="#" class="btn btn-light rounded-pill px-4">View Audit Log</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- Stats -->
+<div class="gov-stats a-up a-up-2">
+  <div class="gov-stat">
+    <p class="gov-stat-val" style="color:var(--amber-d);">1</p>
+    <p class="gov-stat-lbl">Pending Review</p>
+  </div>
+  <div class="gov-stat">
+    <p class="gov-stat-val" style="color:var(--teal-d);">1</p>
+    <p class="gov-stat-lbl">Signed Off</p>
+  </div>
+  <div class="gov-stat">
+    <p class="gov-stat-val" style="color:var(--ink-4);">0</p>
+    <p class="gov-stat-lbl">Rejected</p>
+  </div>
 </div>
+
+<!-- Section: Pending -->
+<p class="eyebrow a-up a-up-3" style="margin-bottom:12px;">
+  Pending Authorization
+  <span style="background:var(--amber-pale);color:var(--amber-d);border:1.5px solid var(--amber-mid);border-radius:999px;padding:2px 9px;margin-left:6px;font-size:10.5px;">1 item</span>
+</p>
+
+<!-- Pending Item -->
+<div class="queue-item a-up a-up-3">
+  <div class="queue-accent qa-amber"></div>
+  <div class="queue-body">
+    <div class="row align-items-start g-4">
+      <div class="col-lg-8">
+        <div class="queue-meta">
+          <span class="badge-mm badge-amber">
+            <i class="ph ph-clock" style="font-size:11px;"></i> Pending Authorization
+          </span>
+          <span class="queue-meta-sep">·</span>
+          <span style="font-size:12.5px;color:var(--ink-3);">
+            Assessment: <a href="#">asm-04f1fae3</a>
+          </span>
+          <span class="queue-meta-sep">·</span>
+          <span class="badge-mm badge-blue">Wave 3</span>
+        </div>
+
+        <p class="queue-title">Acceptable Downtime Exceeded — SLA Warning</p>
+        <p class="queue-desc">
+          The Architect Agent scheduled <code>Inventory-SQL</code> for offline migration.
+          The Surveyor Agent determined the data volume (4.2 TB) will require <strong>6.5 hours</strong>
+          to transfer — exceeding the strict 4-hour maintenance window by 2.5 hours.
+        </p>
+
+        <div class="queue-rec">
+          <p class="queue-rec-label">
+            <i class="ph ph-robot" style="font-size:13px;"></i>
+            AI Recommendation
+          </p>
+          Do you authorize exceeding the maintenance window by 2.5 hours, or should the Architect Agent regenerate the wave plan using continuous Azure SQL Data Sync instead of offline migration?
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="queue-actions">
+          <button class="btn-mm btn-teal btn-full"
+            onclick="this.innerHTML='<i class=\'ph ph-check-circle\'></i> Signed Off';this.classList.remove('btn-teal');this.classList.add('btn-ghost-teal');this.disabled=true;">
+            <i class="ph ph-check-circle"></i>
+            Approve Downtime Exception
+          </button>
+          <button class="btn-mm btn-ghost-coral btn-full"
+            onclick="alert('Sending rejection to orchestrator — wave plan will be regenerated.');">
+            <i class="ph ph-arrow-counter-clockwise"></i>
+            Reject — Regenerate Plan
+          </button>
+          <button class="btn-mm btn-ghost btn-full" style="font-size:12.5px;">
+            <i class="ph ph-clipboard-text"></i>
+            View Audit Log
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section: Completed -->
+<p class="eyebrow a-up a-up-4" style="margin-bottom:12px;margin-top:2rem;">Sign-off History</p>
+
+<!-- Approved Item -->
+<div class="queue-item approved a-up a-up-4">
+  <div class="queue-accent qa-teal"></div>
+  <div class="queue-body">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <div class="queue-meta">
+          <span class="badge-mm badge-teal">
+            <i class="ph ph-check-circle" style="font-size:11px;"></i> Signed Off
+          </span>
+          <span class="queue-meta-sep">·</span>
+          <span style="font-size:12.5px;color:var(--ink-3);">Assessment: <a href="#">asm-12a9b34c</a></span>
+          <span class="queue-meta-sep">·</span>
+          <span class="badge-mm badge-blue">Wave 1</span>
+        </div>
+
+        <p class="queue-title" style="color:var(--teal-d);">GDPR Region Exception</p>
+        <p class="queue-desc" style="margin-bottom:0;">
+          Approved moving <code>Customer-Redis</code> to <code>East US</code> for staging purposes.
+          <span style="font-family:var(--f-m);font-size:11.5px;color:var(--ink-4);display:block;margin-top:4px;">
+            <i class="ph ph-user-circle" style="font-size:13px;vertical-align:middle;"></i>
+            Authorized by Jhon Anderson &nbsp;·&nbsp; Oct 24, 2025, 9:14 AM
+          </span>
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="#" class="btn-mm btn-ghost" style="font-size:12.5px;">
+          <i class="ph ph-clipboard-text"></i>
+          View Audit Log
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

@@ -1,360 +1,585 @@
-<!-- django_app/apps/core/templates/core/playbook_detail.html -->
 {% extends 'base.html' %}
 {% load static %}
 
+{% block nav_assess %}active{% endblock %}
+
 {% block extra_head %}
-<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-<style>
-    .nav-tabs .nav-link { font-weight: 500; font-size: 1.1rem; padding: 1rem 1.5rem; color: #6c757d; }
-    .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; background: transparent; border-top: none; border-left: none; border-right: none;}
-    .risk-card { transition: transform 0.2s; }
-    .risk-card:hover { transform: translateY(-5px); }
-    #dependency-network { height: 650px; background-color: #f8f9fa; border-radius: 0 0 0 1rem; }
-</style>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+{% endblock %}
+
+{% block extra_styles %}
+/* ── VERSION PILL ── */
+.version-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 13px; border-radius: 999px;
+  background: var(--teal-pale); border: 1.5px solid var(--teal-mid);
+  font-family: var(--f-m); font-size: 12px; color: var(--teal-d);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--teal); flex-shrink: 0;
+  animation: pulseLive 2s ease-in-out infinite;
+}
+@keyframes pulseLive {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,194,120,0.6); }
+  50%      { box-shadow: 0 0 0 5px rgba(0,194,120,0); }
+}
+
+/* ── CUSTOM TABS ── */
+.mm-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1.5px solid var(--border);
+  padding: 0 1.5rem; overflow-x: auto;
+  scrollbar-width: none;
+}
+.mm-tabs::-webkit-scrollbar { display: none; }
+
+.mm-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 14px 18px; background: transparent; border: none;
+  border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
+  font-family: var(--f-b); font-size: 13.5px; font-weight: 500;
+  color: var(--ink-3); cursor: pointer; transition: all 0.18s var(--ease);
+  white-space: nowrap;
+}
+.mm-tab i { font-size: 18px; opacity: 0.6; transition: opacity 0.18s; }
+.mm-tab:hover { color: var(--ink); }
+.mm-tab.active {
+  color: var(--teal-d); border-bottom-color: var(--teal);
+  font-weight: 700;
+}
+.mm-tab.active i { opacity: 1; color: var(--teal-d); }
+
+.mm-pane { display: none; }
+.mm-pane.active { display: block; }
+
+/* ── GRAPH ── */
+#dependency-network {
+  height: 580px; background: var(--cream);
+  border-radius: 0 0 var(--r-xl) 0;
+}
+
+.graph-sidebar {
+  padding: 1.5rem; background: var(--s1);
+  border-left: 1.5px solid var(--border);
+  min-height: 580px;
+}
+
+.legend-row {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 13px; color: var(--ink-2); padding: 7px 0;
+  border-bottom: 1px solid var(--border); cursor: default;
+  transition: background 0.15s; border-radius: var(--r-sm);
+  padding-inline: 8px;
+}
+.legend-row:last-child { border-bottom: none; }
+.legend-row:hover { background: var(--white); }
+
+.legend-swatch {
+  width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* ── WAVE CARDS ── */
+.wave-card {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xl); padding: 1.5rem;
+  transition: all 0.22s var(--spring);
+  position: relative; overflow: hidden;
+}
+
+.wave-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--teal), var(--blue));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s var(--ease);
+}
+.wave-card:hover { border-color: var(--teal-mid); box-shadow: var(--sh-md); transform: translateY(-4px); }
+.wave-card:hover::before { transform: scaleX(1); }
+
+.wave-num {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 11px; border-radius: 999px;
+  font-family: var(--f-m); font-size: 11px;
+  background: var(--teal-pale); color: var(--teal-d); border: 1.5px solid var(--teal-mid);
+}
+
+.asset-list { list-style: none; padding: 0; margin: 0; }
+.asset-list li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 11px; border-radius: var(--r-sm);
+  font-family: var(--f-m); font-size: 12px; color: var(--ink-2);
+  border: 1px solid var(--border); margin-bottom: 5px;
+  background: var(--s1);
+  transition: all 0.15s;
+}
+.asset-list li:hover { background: var(--teal-pale); border-color: var(--teal-mid); color: var(--teal-d); }
+.asset-list li i { font-size: 15px; color: var(--ink-4); }
+.asset-list li:hover i { color: var(--teal); }
+
+/* ── KPI CARDS ── */
+.kpi-card {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xl); padding: 1.5rem;
+  transition: all 0.22s var(--spring); cursor: default;
+}
+.kpi-card:hover { border-color: var(--border-d); box-shadow: var(--sh-md); transform: translateY(-3px); }
+
+.kpi-label {
+  font-family: var(--f-m); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-4); margin-bottom: 8px;
+}
+.kpi-value {
+  font-family: var(--f-d); font-size: 32px; font-weight: 800;
+  letter-spacing: -1.5px; line-height: 1;
+}
+
+/* ── PRICING TABLE ── */
+.price-row:hover { background: var(--teal-pale) !important; }
+.price-row { transition: background 0.15s; }
+
+.num-red   { font-family: var(--f-m); color: var(--coral-d); font-size: 13px; }
+.num-teal  { font-family: var(--f-m); color: var(--teal-d); font-size: 13px; font-weight: 700; }
+.num-blue  { font-family: var(--f-m); color: var(--blue-d); font-size: 13px; font-weight: 700; }
+
+/* ── RISK CARDS ── */
+.risk-card {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xl); padding: 1.5rem;
+  transition: all 0.22s var(--spring);
+}
+.risk-card:hover { box-shadow: var(--sh-md); transform: translateY(-4px); }
+.risk-card.blocking {
+  border-left: 4px solid var(--coral);
+  border-color: var(--coral-mid);
+  background: linear-gradient(135deg, var(--coral-pale) 0%, var(--white) 40%);
+}
+.risk-card.blocking:hover { border-color: var(--coral); }
+.risk-card.warning  {
+  border-left: 4px solid var(--amber);
+  border-color: var(--amber-mid);
+  background: linear-gradient(135deg, var(--amber-pale) 0%, var(--white) 40%);
+}
+.risk-card.warning:hover { border-color: var(--amber); }
+
+.risk-type-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 20px;
+}
+
+.risk-remedy {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 12px; font-size: 13px;
+  color: var(--ink-2); line-height: 1.65;
+}
+.risk-remedy .remedy-label {
+  font-family: var(--f-m); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-4); margin-bottom: 6px;
+}
+
+/* ── SECTION HEADER ── */
+.sec-hdr {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; padding-bottom: 1.25rem; margin-bottom: 1.5rem;
+  border-bottom: 1.5px solid var(--border);
+}
+.sec-title { font-family: var(--f-d); font-size: 18px; font-weight: 800; letter-spacing: -0.4px; }
+.sec-sub   { font-size: 13px; color: var(--ink-3); margin-top: 3px; max-width: 540px; }
+
+/* ── EMPTY STATE ── */
+.empty-box {
+  text-align: center; padding: 3rem 2rem;
+  background: var(--s1); border-radius: var(--r-xl); border: 1.5px dashed var(--border-d);
+}
 {% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <div>
-        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-2">
-            <div class="breadcrumb-title pe-3">Playbook</div>
-            <div class="ps-3">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0 p-0">
-                        <li class="breadcrumb-item"><a href="/"><i class="material-icons-outlined fs-6">home</i></a></li>
-                        <li class="breadcrumb-item"><a href="/assessments/">Assessments</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{ assessment.id }}</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-        <h2 class="fw-bold mb-0">{{ assessment.name }}</h2>
-        <p class="text-muted mb-0 mt-1">Living Migration Playbook — Version {{ version }}.0 (Auto-updating)</p>
+
+<!-- PAGE HEADER -->
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4 a-up">
+  <div>
+    <div class="mm-bc">
+      <a href="/"><i class="ph ph-house" style="font-size:15px;"></i></a>
+      <span class="mm-bc-sep">›</span>
+      <a href="/assessments/">Assessments</a>
+      <span class="mm-bc-sep">›</span>
+      <span class="mono" style="font-size:12px;color:var(--ink-3);">{{ assessment.id }}</span>
     </div>
-    
-    <div class="d-flex gap-2">
-        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 fs-6 rounded-pill d-flex align-items-center gap-1">
-            <i class="material-icons-outlined fs-5">check_circle</i> Playbook Ready
-        </span>
+    <h1 class="page-title">{{ assessment.name }}</h1>
+    <p class="page-sub">Living Migration Playbook</p>
+  </div>
+  <div class="d-flex align-items-center gap-2 flex-shrink-0">
+    <div class="version-pill">
+      <span class="live-dot"></span>
+      v{{ version }}.0 · Auto-updating
     </div>
+    <a href="/assessments/" class="btn-mm btn-ghost" style="font-size:13px;">
+      <i class="ph ph-arrow-left"></i> All Assessments
+    </a>
+  </div>
 </div>
 
 {% if not playbook %}
-<div class="alert alert-warning rounded-4 p-4">
-    <h4 class="alert-heading fw-bold">Playbook Data Not Found</h4>
-    <p>The AI agents are still processing this assessment or encountered an error. Please check the logs.</p>
+<div class="empty-box a-up a-up-1">
+  <i class="ph ph-hourglass-medium" style="font-size:48px;color:var(--ink-4);margin-bottom:1rem;display:block;"></i>
+  <h3 style="font-family:var(--f-d);font-size:18px;font-weight:800;margin-bottom:8px;">Playbook not ready yet</h3>
+  <p style="color:var(--ink-3);font-size:13.5px;max-width:380px;margin:0 auto 1.25rem;">The AI agents are still processing or encountered an error. Check your Azure Function logs.</p>
+  <a href="/assessments/" class="btn-mm btn-ghost">← Back to Assessments</a>
 </div>
+
 {% else %}
 
-<!-- Main Tabs -->
-<div class="card rounded-4 shadow-sm mb-5">
-    <div class="card-header bg-white border-bottom p-0">
-        <ul class="nav nav-tabs px-4" id="playbookTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active d-flex align-items-center gap-2" data-bs-toggle="tab" data-bs-target="#map" type="button" role="tab">
-                    <i class="material-icons-outlined">hub</i> Dependency Map
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center gap-2" data-bs-toggle="tab" data-bs-target="#waves" type="button" role="tab">
-                    <i class="material-icons-outlined">view_kanban</i> Migration Waves
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center gap-2" data-bs-toggle="tab" data-bs-target="#business" type="button" role="tab">
-                    <i class="material-icons-outlined">payments</i> Business Case
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center gap-2" data-bs-toggle="tab" data-bs-target="#risk" type="button" role="tab">
-                    <i class="material-icons-outlined">gavel</i> Risk & Compliance
-                </button>
-            </li>
-        </ul>
-    </div>
-    
-    <div class="card-body p-0">
-        <div class="tab-content">
-            
-            <!-- TAB 1: Dependency Map (DYNAMIC) -->
-            <div class="tab-pane fade show active p-0" id="map" role="tabpanel">
-                <div class="row g-0">
-                    <div class="col-lg-9 border-end">
-                        <div id="dependency-network"></div>
-                    </div>
-                    <div class="col-lg-3 p-4">
-                        <h5 class="fw-bold mb-3">Graph Context</h5>
-                        <p class="text-muted small">This adjacency map was generated by the <strong>Surveyor Agent</strong> analyzing current state.</p>
-                        <hr>
-                        <h6 class="fw-bold">Legend</h6>
-                        <ul class="list-unstyled small mt-2 d-flex flex-column gap-2">
-                            <li class="d-flex align-items-center gap-2"><span class="badge bg-primary p-2 rounded-circle"> </span> Applications</li>
-                            <li class="d-flex align-items-center gap-2"><span class="badge bg-danger p-2 rounded-circle"> </span> Databases</li>
-                            <li class="d-flex align-items-center gap-2"><span class="badge bg-warning p-2 rounded-circle"> </span> Shared Services</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+<!-- MAIN CARD + TABS -->
+<div class="card-mm a-up a-up-1" style="overflow:hidden;">
 
-            <!-- TAB 2: Migration Waves (DYNAMIC AI DATA) -->
-            <div class="tab-pane fade p-4 p-lg-5" id="waves" role="tabpanel">
-                <div class="mb-4 border-bottom pb-3">
-                    <h4 class="fw-bold mb-1">Topological Sort Sequencing</h4>
-                    <p class="text-muted mb-0"><strong>AI Summary:</strong> {{ playbook.architect.summary }}</p>
-                </div>
+  <!-- Tab Bar -->
+  <div class="mm-tabs">
+    <button class="mm-tab active" data-tab="map">
+      <i class="ph ph-graph"></i> Dependency Map
+    </button>
+    <button class="mm-tab" data-tab="waves">
+      <i class="ph ph-kanban"></i> Migration Waves
+    </button>
+    <button class="mm-tab" data-tab="business">
+      <i class="ph ph-chart-line-up"></i> Business Case
+    </button>
+    <button class="mm-tab" data-tab="risk">
+      <i class="ph ph-shield-warning"></i> Risk & Compliance
+    </button>
+  </div>
 
-                <div class="row">
-                    {% for wave in playbook.architect.waves %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card rounded-4 border-0 bg-light h-100 shadow-sm">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between mb-3">
-                                    <span class="badge bg-primary fs-6 rounded-pill px-3">Wave {{ wave.wave_number }}</span>
-                                    <span class="text-muted small"><i class="material-icons-outlined align-middle fs-6">schedule</i> {{ wave.duration_days }} Days</span>
-                                </div>
-                                <h5 class="fw-bold">{{ wave.name }}</h5>
-                                <p class="small text-muted mb-4">{{ wave.reasoning }}</p>
-                                
-                                <h6 class="fw-bold fs-6">Assets in Wave:</h6>
-                                <ul class="list-group list-group-flush mb-4 rounded-3 border">
-                                    {% for asset in wave.assets %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-white">
-                                        {{ asset }} <i class="material-icons-outlined text-muted fs-6">dns</i>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                                
-                                <!-- ONLY show the "Mark Completed" button on Wave 1 so users click sequentially -->
-                                {% if wave.wave_number == 1 %}
-                                <button class="btn btn-primary w-100 rounded-pill btn-complete-wave" data-wave="{{ wave.wave_number }}">
-                                    Mark Completed
-                                </button>
-                                {% else %}
-                                <button class="btn btn-outline-secondary w-100 rounded-pill" disabled>
-                                    Wait for Previous Wave
-                                </button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+  <!-- ── TAB: Dependency Map ── -->
+  <div class="mm-pane active" id="tab-map">
+    <div style="display:grid;grid-template-columns:1fr 260px;">
+      <div>
+        <div id="dependency-network"></div>
+      </div>
+      <div class="graph-sidebar">
+        <p class="eyebrow" style="margin-bottom:10px;">Graph Context</p>
+        <p style="font-size:13px;color:var(--ink-2);line-height:1.7;margin-bottom:1.25rem;">
+          Built by the <strong style="color:var(--teal-d);">Surveyor Agent</strong> analyzing current-state workloads. Arrows show runtime dependencies.
+        </p>
 
-            <!-- TAB 3: Business Case (DYNAMIC PRICING DATA) -->
-            <div class="tab-pane fade p-4 p-lg-5" id="business" role="tabpanel">
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h4 class="fw-bold">Live ROI & Financials</h4>
-                        <p class="text-muted mb-0"><strong>AI Summary:</strong> {{ playbook.accountant.summary }}</p>
-                    </div>
-                </div>
-                
-                <div class="row g-4 mb-5">
-                    <div class="col-md-4">
-                        <div class="card bg-success bg-opacity-10 border-0 rounded-4 h-100">
-                            <div class="card-body p-4 text-center">
-                                <p class="text-success fw-bold mb-1">3-Year NPV</p>
-                                <h2 class="fw-bold text-success mb-0">${{ playbook.accountant.total_business_case.three_year_npv }}</h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-warning bg-opacity-10 border-0 rounded-4 h-100">
-                            <div class="card-body p-4 text-center">
-                                <p class="text-warning fw-bold mb-1">ROI Breakeven</p>
-                                <h2 class="fw-bold text-warning mb-0">{{ playbook.accountant.total_business_case.roi_month }} Months</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="table-responsive border rounded-4">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="py-3 px-4">Wave</th>
-                                <th class="py-3">Pricing Source</th>
-                                <th class="py-3 text-end text-danger">Current Cost</th>
-                                <th class="py-3 text-end text-success">Azure Cost</th>
-                                <th class="py-3 text-end px-4 text-primary">Monthly Savings</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for cost in playbook.accountant.per_wave_costs %}
-                            <tr>
-                                <td class="px-4 fw-bold">Wave {{ cost.wave_number }}</td>
-                                <td><span class="badge bg-secondary rounded-pill">{{ cost.pricing_source }}</span></td>
-                                <td class="text-end text-danger">${{ cost.current_monthly_cost }}</td>
-                                <td class="text-end text-success fw-bold">${{ cost.projected_monthly_cost }}</td>
-                                <td class="text-end px-4 text-primary fw-bold">${{ cost.estimated_savings }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 4: Risk Cards (DYNAMIC AI DATA) -->
-            <div class="tab-pane fade p-4 p-lg-5" id="risk" role="tabpanel">
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h4 class="fw-bold">Compliance & Risk Evaluation</h4>
-                        <p class="text-muted mb-0">Analyzed by the Azure OpenAI Risk Officer.</p>
-                    </div>
-                </div>
-                <div class="row">
-                    {% for risk in playbook.risk.wave_risk_cards %}
-                    <div class="col-md-6 mb-4">
-                        <div class="card risk-card border {% if risk.is_blocking %}border-danger{% else %}border-warning{% endif %} border-2 rounded-4 h-100 shadow-sm">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    {% if risk.is_blocking %}
-                                    <i class="material-icons-outlined text-danger fs-3">block</i>
-                                    <h5 class="fw-bold text-danger mb-0">BLOCKING: {{ risk.risk_type }}</h5>
-                                    {% else %}
-                                    <i class="material-icons-outlined text-warning fs-3">warning_amber</i>
-                                    <h5 class="fw-bold text-warning mb-0">WARNING: {{ risk.risk_type }}</h5>
-                                    {% endif %}
-                                </div>
-                                <div class="mb-3 d-flex align-items-center gap-2">
-                                    <span class="badge bg-secondary rounded-pill">Wave {{ risk.wave_number }}</span>
-                                </div>
-                                <p class="mb-3"><strong>Observation:</strong> {{ risk.description }}</p>
-                                <div class="bg-light p-3 rounded-3 mb-4 text-dark small">
-                                    <strong>AI Remediation Plan:</strong> {{ risk.remediation_plan }}
-                                </div>
-                                <button class="btn {% if risk.is_blocking %}btn-outline-danger{% else %}btn-outline-warning text-dark{% endif %} w-100 rounded-pill">
-                                    Acknowledge Risk
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="col-12">
-                        <div class="alert alert-success d-flex align-items-center gap-2 rounded-4">
-                            <i class="material-icons-outlined fs-4">verified_user</i>
-                            <h5 class="mb-0">No significant compliance or downtime risks detected for this migration plan!</h5>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
+        <p class="eyebrow" style="margin-bottom:8px;">Legend</p>
+        <div style="margin-bottom:1.25rem;">
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--blue);"></div> Applications</div>
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--coral);border-radius:2px;"></div> Databases</div>
+          <div class="legend-row"><div class="legend-swatch" style="background:var(--amber);clip-path:polygon(50% 0%, 0% 100%, 100% 100%);border-radius:0;"></div> Shared Services</div>
         </div>
+
+        <p class="eyebrow" style="margin-bottom:8px;">Controls</p>
+        <p style="font-size:12px;color:var(--ink-3);line-height:1.6;">
+          <i class="ph ph-mouse-scroll" style="font-size:14px;vertical-align:middle;"></i> Scroll to zoom<br>
+          <i class="ph ph-hand" style="font-size:14px;vertical-align:middle;"></i> Drag to pan<br>
+          <i class="ph ph-cursor-click" style="font-size:14px;vertical-align:middle;"></i> Click a node to inspect
+        </p>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- INJECT JSON FROM DJANGO SECURELY FOR JAVASCRIPT TO USE -->
+  <!-- ── TAB: Migration Waves ── -->
+  <div class="mm-pane" id="tab-waves">
+    <div style="padding:1.75rem 2rem;">
+      <div class="sec-hdr">
+        <div>
+          <p class="sec-title">Migration Wave Sequencing</p>
+          <p class="sec-sub">{{ playbook.architect.summary }}</p>
+        </div>
+        <span class="badge-mm badge-teal">
+          <i class="ph ph-sparkle" style="font-size:12px;"></i> AI-Sequenced
+        </span>
+      </div>
+
+      <div class="row g-3">
+        {% for wave in playbook.architect.waves %}
+        <div class="col-md-4">
+          <div class="wave-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+              <span class="wave-num"><i class="ph ph-wave-triangle" style="font-size:12px;"></i> Wave {{ wave.wave_number }}</span>
+              <span style="font-family:var(--f-m);font-size:11.5px;color:var(--ink-3);display:flex;align-items:center;gap:4px;">
+                <i class="ph ph-clock" style="font-size:14px;"></i> {{ wave.duration_days }}d
+              </span>
+            </div>
+
+            <h5 style="font-family:var(--f-d);font-size:15px;font-weight:800;margin-bottom:5px;letter-spacing:-0.3px;">{{ wave.name }}</h5>
+            <p style="font-size:12.5px;color:var(--ink-3);line-height:1.6;margin-bottom:1.25rem;">{{ wave.reasoning }}</p>
+
+            <p class="eyebrow" style="margin-bottom:8px;">Assets in this wave</p>
+            <ul class="asset-list" style="margin-bottom:1.25rem;">
+              {% for asset in wave.assets %}
+              <li>
+                <span>{{ asset }}</span>
+                <i class="ph ph-hard-drives"></i>
+              </li>
+              {% endfor %}
+            </ul>
+
+            {% if wave.wave_number == 1 %}
+            <button class="btn-mm btn-teal btn-full btn-complete-wave" data-wave="{{ wave.wave_number }}">
+              <i class="ph ph-check-circle"></i> Mark Completed
+            </button>
+            {% else %}
+            <button class="btn-mm btn-ghost btn-full" disabled style="opacity:0.4;cursor:not-allowed;">
+              <i class="ph ph-lock"></i> Awaiting previous wave
+            </button>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: Business Case ── -->
+  <div class="mm-pane" id="tab-business">
+    <div style="padding:1.75rem 2rem;">
+      <div class="sec-hdr">
+        <div>
+          <p class="sec-title">Live ROI & Financial Analysis</p>
+          <p class="sec-sub">{{ playbook.accountant.summary }}</p>
+        </div>
+        <span class="badge-mm badge-teal">
+          <i class="ph ph-wifi-high" style="font-size:12px;"></i> Live Pricing
+        </span>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="kpi-card">
+            <p class="kpi-label">3-Year NPV</p>
+            <p class="kpi-value" style="color:var(--teal-d);">${{ playbook.accountant.total_business_case.three_year_npv }}</p>
+            <p style="font-size:12px;color:var(--ink-4);margin-top:8px;">Net present value over 36 months</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="kpi-card">
+            <p class="kpi-label">ROI Breakeven</p>
+            <p class="kpi-value" style="color:var(--amber-d);">{{ playbook.accountant.total_business_case.roi_month }}<span style="font-size:18px;font-weight:500;color:var(--ink-4);"> mo</span></p>
+            <p style="font-size:12px;color:var(--ink-4);margin-top:8px;">Months until investment recovered</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
+        <table class="tbl-mm">
+          <thead>
+            <tr>
+              <th>Wave</th>
+              <th>Pricing Source</th>
+              <th style="text-align:right;">Current / mo</th>
+              <th style="text-align:right;">Azure / mo</th>
+              <th style="text-align:right;">Savings</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cost in playbook.accountant.per_wave_costs %}
+            <tr class="price-row">
+              <td><span class="badge-mm badge-blue">Wave {{ cost.wave_number }}</span></td>
+              <td><span class="badge-mm badge-gray">{{ cost.pricing_source }}</span></td>
+              <td style="text-align:right;" class="num-red">${{ cost.current_monthly_cost }}</td>
+              <td style="text-align:right;" class="num-teal">${{ cost.projected_monthly_cost }}</td>
+              <td style="text-align:right;" class="num-blue">${{ cost.estimated_savings }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: Risk & Compliance ── -->
+  <div class="mm-pane" id="tab-risk">
+    <div style="padding:1.75rem 2rem;">
+      <div class="sec-hdr">
+        <div>
+          <p class="sec-title">Compliance & Risk Cards</p>
+          <p class="sec-sub">Generated by the Risk Officer Agent · Deterministic rule evaluation against GDPR, SOX, HIPAA, and SLA policies</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        {% for risk in playbook.risk.wave_risk_cards %}
+        <div class="col-md-6">
+          <div class="risk-card {% if risk.is_blocking %}blocking{% else %}warning{% endif %}">
+            <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:1rem;">
+              {% if risk.is_blocking %}
+              <div class="risk-type-icon" style="background:var(--coral-pale);color:var(--coral-d);">
+                <i class="ph ph-prohibit"></i>
+              </div>
+              {% else %}
+              <div class="risk-type-icon" style="background:var(--amber-pale);color:var(--amber-d);">
+                <i class="ph ph-warning-octagon"></i>
+              </div>
+              {% endif %}
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px;">
+                  {% if risk.is_blocking %}
+                  <span class="badge-mm badge-coral">BLOCKING</span>
+                  {% else %}
+                  <span class="badge-mm badge-amber">WARNING</span>
+                  {% endif %}
+                  <span class="badge-mm badge-gray">Wave {{ risk.wave_number }}</span>
+                </div>
+                <p style="font-family:var(--f-d);font-size:15px;font-weight:800;color:var(--ink);margin:0;letter-spacing:-0.3px;">{{ risk.risk_type }}</p>
+              </div>
+            </div>
+
+            <p style="font-size:13px;color:var(--ink-2);line-height:1.65;margin-bottom:1rem;">
+              <span style="font-family:var(--f-m);font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-4);">Observation &mdash; </span>
+              {{ risk.description }}
+            </p>
+
+            <div class="risk-remedy mb-4">
+              <p class="remedy-label"><i class="ph ph-robot" style="font-size:12px;vertical-align:middle;"></i> &nbsp;AI Remediation Plan</p>
+              {{ risk.remediation_plan }}
+            </div>
+
+            {% if risk.is_blocking %}
+            <button class="btn-mm btn-ghost-coral btn-full">
+              <i class="ph ph-thumbs-up"></i> Acknowledge Risk
+            </button>
+            {% else %}
+            <button class="btn-mm btn-ghost-amber btn-full">
+              <i class="ph ph-thumbs-up"></i> Acknowledge Risk
+            </button>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div style="background:var(--teal-pale);border:1.5px solid var(--teal-mid);border-radius:var(--r-xl);padding:2rem;text-align:center;">
+            <i class="ph ph-shield-check" style="font-size:40px;color:var(--teal-d);display:block;margin-bottom:10px;"></i>
+            <p style="font-family:var(--f-d);font-size:16px;font-weight:800;color:var(--teal-d);margin-bottom:4px;">All Clear</p>
+            <p style="font-size:13.5px;color:var(--teal-d);opacity:0.75;">No compliance or downtime risks detected for this migration plan.</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div><!-- /card-mm -->
+
 {{ playbook.dependency_graph|json_script:"graph-data" }}
-
 {% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Safely load the JSON graph data passed from Django
-        const graphDataElement = document.getElementById('graph-data');
-        if (!graphDataElement) return; // If playbook not ready, skip.
+// Tab switching
+document.querySelectorAll('.mm-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.mm-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.mm-pane').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    const pane = document.getElementById('tab-' + this.dataset.tab);
+    if (pane) pane.classList.add('active');
+    if (this.dataset.tab === 'map' && !window._graphReady) initGraph();
+  });
+});
 
-        const graphDict = JSON.parse(graphDataElement.textContent);
-        
-        let nodesArray = [];
-        let edgesArray =[];
-        let nodeIdMap = {};
-        let idCounter = 1;
+// Dependency graph
+function initGraph() {
+  const el = document.getElementById('graph-data');
+  if (!el) return;
+  window._graphReady = true;
 
-        // Map colors/shapes based on names just to make it look cool
-        function getNodeStyle(name) {
-            if(name.includes("SQL")) return { shape: "square", color: "#dc3545" }; // Database
-            if(name.includes("Redis") || name.includes("AD")) return { shape: "triangle", color: "#ffc107" }; // Shared
-            return { shape: "dot", color: "#0d6efd" }; // App
-        }
+  const dict = JSON.parse(el.textContent);
+  let nodes = [], edges = [], ids = {}, n = 1;
 
-        // Parse Dictionary to Nodes/Edges
-        for (let source in graphDict) {
-            if (!nodeIdMap[source]) {
-                nodeIdMap[source] = idCounter++;
-                let style = getNodeStyle(source);
-                nodesArray.push({ id: nodeIdMap[source], label: source, shape: style.shape, color: style.color, size: 20 });
-            }
-            
-            graphDict[source].forEach(target => {
-                if (!nodeIdMap[target]) {
-                    nodeIdMap[target] = idCounter++;
-                    let style = getNodeStyle(target);
-                    nodesArray.push({ id: nodeIdMap[target], label: target, shape: style.shape, color: style.color, size: 20 });
-                }
-                edgesArray.push({ from: nodeIdMap[source], to: nodeIdMap[target], arrows: "to" });
-            });
-        }
+  function style(name) {
+    if (name.includes('SQL')) return {
+      shape: 'box',
+      color: { background: '#FFF1F3', border: '#F43F5E', highlight: { background: '#FECDD3', border: '#E11D48' } },
+      font: { color: '#9F1239', face: 'Space Mono', size: 11 }
+    };
+    if (name.includes('Redis') || name.includes('AD')) return {
+      shape: 'diamond',
+      color: { background: '#FFFBEB', border: '#F59E0B', highlight: { background: '#FDE68A', border: '#D97706' } },
+      font: { color: '#92400E', face: 'Space Mono', size: 11 }
+    };
+    return {
+      shape: 'ellipse',
+      color: { background: '#EFF6FF', border: '#2563EB', highlight: { background: '#BFDBFE', border: '#1D4ED8' } },
+      font: { color: '#1E3A8A', face: 'Space Mono', size: 11 }
+    };
+  }
 
-        var container = document.getElementById("dependency-network");
-        var data = { 
-            nodes: new vis.DataSet(nodesArray), 
-            edges: new vis.DataSet(edgesArray) 
-        };
-        var options = { physics: { barnesHut: { gravitationalConstant: -3000 } } };
-        
-        if(container) {
-            new vis.Network(container, data, options);
-        }
-    });
-
-    // Helper to get CSRF token for POST/PATCH requests
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+  for (const src in dict) {
+    if (!ids[src]) {
+      ids[src] = n++;
+      const s = style(src);
+      nodes.push({ id: ids[src], label: src, ...s, borderWidth: 2, size: 24 });
     }
-
-    // The "Living Playbook" Trigger
-    document.querySelectorAll('.btn-complete-wave').forEach(button => {
-        button.addEventListener('click', function() {
-            const waveNum = this.getAttribute('data-wave');
-            const assessmentId = "{{ assessment.id }}";
-            const btn = this;
-            
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Recalculating AI Plan...`;
-            btn.classList.replace('btn-primary', 'btn-secondary');
-            btn.setAttribute('disabled', 'true');
-            
-            fetch(`/api/assessments/${assessmentId}/waves/${waveNum}/complete/`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const pollInterval = setInterval(() => {
-                    fetch(`/api/assessments/${assessmentId}/status/`)
-                    .then(res => res.json())
-                    .then(statusData => {
-                        if(statusData.status === 'playbook_ready') {
-                            clearInterval(pollInterval);
-                            window.location.reload();
-                        }
-                    });
-                }, 3000);
-            })
-            .catch(err => {
-                console.error(err);
-                btn.innerHTML = 'Error';
-            });
-        });
+    dict[src].forEach(tgt => {
+      if (!ids[tgt]) {
+        ids[tgt] = n++;
+        const s = style(tgt);
+        nodes.push({ id: ids[tgt], label: tgt, ...s, borderWidth: 2, size: 24 });
+      }
+      edges.push({
+        from: ids[src], to: ids[tgt], arrows: 'to',
+        color: { color: '#C8C7BC', highlight: '#2563EB' },
+        width: 1.5, smooth: { type: 'curvedCW', roundness: 0.2 }
+      });
     });
+  }
+
+  const container = document.getElementById('dependency-network');
+  if (!container) return;
+
+  new vis.Network(container,
+    { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) },
+    {
+      physics: { barnesHut: { gravitationalConstant: -4500, springLength: 130, springConstant: 0.04 } },
+      interaction: { hover: true, tooltipDelay: 150 },
+      nodes: { borderWidth: 2 },
+      edges: { smooth: { type: 'curvedCW', roundness: 0.15 } }
+    }
+  );
+}
+
+document.addEventListener('DOMContentLoaded', initGraph);
+
+// CSRF
+function getCookie(n) {
+  let v = null;
+  document.cookie && document.cookie.split(';').forEach(c => {
+    c = c.trim();
+    if (c.startsWith(n+'=')) v = decodeURIComponent(c.slice(n.length+1));
+  });
+  return v;
+}
+
+// Complete wave — living playbook
+document.querySelectorAll('.btn-complete-wave').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const wave = this.dataset.wave;
+    const id = "{{ assessment.id }}";
+    this.innerHTML = '<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite;font-size:16px;"></i> Recalculating...';
+    this.disabled = true; this.style.opacity = '0.6';
+
+    fetch(`/api/assessments/${id}/waves/${wave}/complete/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(r => r.json())
+    .then(() => {
+      const iv = setInterval(() => {
+        fetch(`/api/assessments/${id}/status/`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.status === 'playbook_ready') { clearInterval(iv); window.location.reload(); }
+        });
+      }, 3000);
+    })
+    .catch(err => {
+      console.error(err);
+      this.innerHTML = '<i class="ph ph-warning"></i> Error — Retry';
+      this.disabled = false; this.style.opacity = '1';
+    });
+  });
+});
 </script>
 {% endblock %}

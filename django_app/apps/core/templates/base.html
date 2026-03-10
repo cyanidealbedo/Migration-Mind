@@ -1,157 +1,387 @@
-<!-- django_app/apps/core/templates/base.html -->
 {% load static %}
 <!doctype html>
-<html lang="en" data-bs-theme="blue-theme">
-
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MigrationMind | Living Playbook</title>
-  
+  <title>MigrationMind | Living Azure Playbook</title>
   <link rel="icon" href="{% static 'assets/images/favicon-32x32.png' %}" type="image/png">
   <link href="{% static 'assets/css/pace.min.css' %}" rel="stylesheet">
   <script src="{% static 'assets/js/pace.min.js' %}"></script>
-
-  <link href="{% static 'assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css' %}" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="{% static 'assets/plugins/metismenu/metisMenu.min.css' %}">
-  <link rel="stylesheet" type="text/css" href="{% static 'assets/plugins/metismenu/mm-vertical.css' %}">
-  <link rel="stylesheet" type="text/css" href="{% static 'assets/plugins/simplebar/css/simplebar.css' %}">
-  
   <link href="{% static 'assets/css/bootstrap.min.css' %}" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined" rel="stylesheet">
-  
-  <link href="{% static 'assets/css/bootstrap-extended.css' %}" rel="stylesheet">
-  <link href="{% static 'sass/main.css' %}" rel="stylesheet">
-  <link href="{% static 'assets/css/horizontal-menu.css' %}" rel="stylesheet">
-  <link href="{% static 'sass/dark-theme.css' %}" rel="stylesheet">
-  <link href="{% static 'sass/blue-theme.css' %}" rel="stylesheet">
-  <link href="{% static 'sass/semi-dark.css' %}" rel="stylesheet">
-  <link href="{% static 'sass/bordered-theme.css' %}" rel="stylesheet">
-  <link href="{% static 'sass/responsive.css' %}" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <style>
+    :root {
+      --cream:       #F8F7F2;
+      --white:       #FFFFFF;
+      --s1:          #F2F1EC;
+      --s2:          #ECEAE3;
 
+      --teal:        #00C278;
+      --teal-d:      #009B61;
+      --teal-pale:   #E6FBF3;
+      --teal-mid:    #A8F0D4;
+
+      --blue:        #2563EB;
+      --blue-d:      #1D4ED8;
+      --blue-pale:   #EFF6FF;
+      --blue-mid:    #BFDBFE;
+
+      --coral:       #F43F5E;
+      --coral-d:     #E11D48;
+      --coral-pale:  #FFF1F3;
+      --coral-mid:   #FECDD3;
+
+      --amber:       #F59E0B;
+      --amber-d:     #D97706;
+      --amber-pale:  #FFFBEB;
+      --amber-mid:   #FDE68A;
+
+      --violet:      #8B5CF6;
+      --violet-pale: #F5F3FF;
+      --violet-mid:  #DDD6FE;
+
+      --ink:         #111110;
+      --ink-2:       #3D3D38;
+      --ink-3:       #6B6B63;
+      --ink-4:       #A8A89E;
+      --ink-5:       #D4D4CC;
+
+      --border:      #E3E2DA;
+      --border-d:    #C8C7BC;
+
+      --f-d:  'Epilogue', sans-serif;
+      --f-b:  'Plus Jakarta Sans', sans-serif;
+      --f-m:  'Space Mono', monospace;
+
+      --nav-h: 60px;
+      --r-sm:  6px;
+      --r-md:  10px;
+      --r-lg:  16px;
+      --r-xl:  22px;
+
+      --sh-sm: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --sh-md: 0 4px 20px rgba(0,0,0,0.09), 0 1px 6px rgba(0,0,0,0.05);
+      --sh-lg: 0 16px 48px rgba(0,0,0,0.13), 0 4px 16px rgba(0,0,0,0.07);
+      --sh-teal: 0 8px 32px rgba(0,194,120,0.28);
+      --sh-blue: 0 8px 32px rgba(37,99,235,0.22);
+
+      --ease:   cubic-bezier(0.4,0,0.2,1);
+      --spring: cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--f-b);
+      background: var(--cream);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* Subtle texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20L20 0' stroke='%23000' stroke-opacity='0.018' stroke-width='1'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── TOPBAR ── */
+    .mm-top {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: rgba(248,247,242,0.9);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1.5px solid var(--border);
+      z-index: 900;
+      display: flex; align-items: center;
+      padding: 0 1.5rem; gap: 0;
+    }
+
+    .mm-logo {
+      display: flex; align-items: center; gap: 9px;
+      text-decoration: none; margin-right: 2.5rem; flex-shrink: 0;
+    }
+
+    .mm-logo-mark {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--teal) 0%, var(--blue) 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--sh-teal); overflow: hidden;
+    }
+    .mm-logo-mark img { width: 100%; height: 100%; object-fit: cover; }
+
+    .mm-logo-text {
+      font-family: var(--f-d); font-weight: 800; font-size: 16px;
+      letter-spacing: -0.4px; color: var(--ink);
+    }
+    .mm-logo-text em { font-style: normal; color: var(--teal); }
+
+    .mm-nav { display: flex; align-items: center; gap: 2px; flex: 1; }
+
+    .mm-nav-a {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 13px; border-radius: var(--r-sm);
+      font-size: 13.5px; font-weight: 500; color: var(--ink-3);
+      text-decoration: none; border: 1.5px solid transparent;
+      transition: all 0.18s var(--ease); white-space: nowrap;
+    }
+    .mm-nav-a i { font-size: 16px; opacity: 0.65; transition: opacity 0.18s; }
+    .mm-nav-a:hover { color: var(--ink); background: var(--s1); border-color: var(--border); }
+    .mm-nav-a.active {
+      color: var(--teal-d); background: var(--teal-pale);
+      border-color: var(--teal-mid); font-weight: 600;
+    }
+    .mm-nav-a.active i { opacity: 1; }
+
+    .mm-top-r { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+    .mm-icon-btn {
+      width: 34px; height: 34px; border-radius: var(--r-sm);
+      background: var(--white); border: 1.5px solid var(--border);
+      color: var(--ink-3); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.18s var(--ease); text-decoration: none; position: relative;
+    }
+    .mm-icon-btn:hover {
+      border-color: var(--border-d); color: var(--ink);
+      box-shadow: var(--sh-sm); transform: translateY(-1px);
+    }
+    .mm-notif-pip {
+      position: absolute; top: 5px; right: 5px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--coral); border: 2px solid var(--cream);
+    }
+
+    .mm-avt {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 2px solid var(--border); overflow: hidden;
+      cursor: pointer; transition: all 0.18s var(--ease);
+    }
+    .mm-avt:hover { border-color: var(--teal); transform: scale(1.06); }
+    .mm-avt img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── MAIN ── */
+    .mm-main { padding-top: var(--nav-h); min-height: 100vh; position: relative; z-index: 1; }
+    .mm-wrap { max-width: 1280px; margin: 0 auto; padding: 2.5rem 1.75rem; }
+
+    /* ── CARDS ── */
+    .card-mm {
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--r-xl); box-shadow: var(--sh-sm);
+      transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.22s var(--spring);
+    }
+    .card-mm:hover { border-color: var(--border-d); box-shadow: var(--sh-md); }
+    .lift:hover { transform: translateY(-4px); box-shadow: var(--sh-lg) !important; }
+
+    /* ── TYPOGRAPHY ── */
+    h1,h2,h3,h4,h5,h6 { font-family: var(--f-d); color: var(--ink); line-height: 1.15; }
+    .mono { font-family: var(--f-m); }
+
+    .eyebrow {
+      font-family: var(--f-m); font-size: 10.5px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-4); margin-bottom: 8px;
+    }
+    .page-title {
+      font-family: var(--f-d); font-size: 28px; font-weight: 800;
+      letter-spacing: -0.8px; color: var(--ink); margin: 0;
+    }
+    .page-sub { font-size: 14px; color: var(--ink-3); margin-top: 5px; }
+
+    /* ── BREADCRUMB ── */
+    .mm-bc { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-4); margin-bottom: 1.25rem; }
+    .mm-bc a { color: var(--ink-3); text-decoration: none; transition: color 0.15s; }
+    .mm-bc a:hover { color: var(--teal-d); }
+    .mm-bc-sep { color: var(--ink-5); font-size: 15px; }
+
+    /* ── BUTTONS ── */
+    .btn-mm {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 18px; border-radius: var(--r-md);
+      font-family: var(--f-b); font-size: 13.5px; font-weight: 600;
+      border: 1.5px solid transparent; cursor: pointer;
+      text-decoration: none; transition: all 0.18s var(--ease);
+      white-space: nowrap; position: relative; overflow: hidden;
+    }
+    .btn-mm i { font-size: 17px; flex-shrink: 0; }
+
+    .btn-teal  { background: var(--teal);  color: #fff; border-color: var(--teal);  box-shadow: 0 2px 8px rgba(0,194,120,0.28); }
+    .btn-teal:hover  { background: var(--teal-d); border-color: var(--teal-d); box-shadow: var(--sh-teal); transform: translateY(-2px); color: #fff; }
+
+    .btn-blue  { background: var(--blue);  color: #fff; border-color: var(--blue);  box-shadow: 0 2px 8px rgba(37,99,235,0.22); }
+    .btn-blue:hover  { background: var(--blue-d); border-color: var(--blue-d); box-shadow: var(--sh-blue); transform: translateY(-2px); color: #fff; }
+
+    .btn-coral { background: var(--coral); color: #fff; border-color: var(--coral); box-shadow: 0 2px 8px rgba(244,63,94,0.22); }
+    .btn-coral:hover { background: var(--coral-d); border-color: var(--coral-d); transform: translateY(-2px); color: #fff; }
+
+    .btn-amber { background: var(--amber); color: #fff; border-color: var(--amber); }
+    .btn-amber:hover { background: var(--amber-d); border-color: var(--amber-d); transform: translateY(-2px); color: #fff; }
+
+    .btn-ghost { background: var(--white); color: var(--ink-2); border-color: var(--border); box-shadow: var(--sh-sm); }
+    .btn-ghost:hover { border-color: var(--border-d); color: var(--ink); box-shadow: var(--sh-md); transform: translateY(-1px); }
+
+    .btn-ghost-teal  { background: var(--teal-pale);  color: var(--teal-d);  border-color: var(--teal-mid);  }
+    .btn-ghost-teal:hover  { background: var(--teal-mid);  transform: translateY(-1px); }
+
+    .btn-ghost-coral { background: var(--coral-pale); color: var(--coral-d); border-color: var(--coral-mid); }
+    .btn-ghost-coral:hover { background: var(--coral-mid); transform: translateY(-1px); }
+
+    .btn-ghost-amber { background: var(--amber-pale); color: var(--amber-d); border-color: var(--amber-mid); }
+    .btn-ghost-amber:hover { background: var(--amber-mid); transform: translateY(-1px); }
+
+    .btn-lg { padding: 13px 26px; font-size: 15px; border-radius: var(--r-lg); }
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* ── BADGES ── */
+    .badge-mm {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px;
+      font-family: var(--f-m); font-size: 11px; border: 1.5px solid transparent;
+    }
+    .badge-teal   { background: var(--teal-pale);  color: var(--teal-d);  border-color: var(--teal-mid); }
+    .badge-blue   { background: var(--blue-pale);  color: var(--blue-d);  border-color: var(--blue-mid); }
+    .badge-coral  { background: var(--coral-pale); color: var(--coral-d); border-color: var(--coral-mid); }
+    .badge-amber  { background: var(--amber-pale); color: var(--amber-d); border-color: var(--amber-mid); }
+    .badge-violet { background: var(--violet-pale);color: var(--violet);  border-color: var(--violet-mid); }
+    .badge-gray   { background: var(--s1);         color: var(--ink-3);   border-color: var(--border); }
+
+    /* ── TABLE ── */
+    .tbl-mm { width: 100%; border-collapse: collapse; }
+    .tbl-mm th {
+      font-family: var(--f-m); font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.09em; color: var(--ink-4); padding: 11px 16px;
+      border-bottom: 1.5px solid var(--border); background: var(--s1); font-weight: 400; text-align: left;
+    }
+    .tbl-mm td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--ink-2); vertical-align: middle; }
+    .tbl-mm tbody tr { transition: background 0.15s; }
+    .tbl-mm tbody tr:hover { background: var(--teal-pale); }
+    .tbl-mm tbody tr:last-child td { border-bottom: none; }
+
+    /* ── DROPDOWN ── */
+    .dropdown-menu {
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--r-md); box-shadow: var(--sh-lg); padding: 5px; min-width: 160px;
+    }
+    .dropdown-item {
+      color: var(--ink-2); border-radius: var(--r-sm); font-size: 13.5px;
+      padding: 8px 12px; display: flex; align-items: center; gap: 8px; font-family: var(--f-b);
+    }
+    .dropdown-item:hover { background: var(--s1); color: var(--ink); }
+
+    /* ── FOOTER ── */
+    .mm-footer {
+      border-top: 1.5px solid var(--border); padding: 1.25rem 1.75rem;
+      text-align: center; font-family: var(--f-m); font-size: 11.5px;
+      color: var(--ink-4); background: var(--s1); position: relative; z-index: 1;
+    }
+
+    /* ── PACE ── */
+    .pace .pace-progress { background: linear-gradient(90deg, var(--teal), var(--blue)) !important; height: 3px !important; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes pulsePip { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.3);opacity:0.7;} }
+    @keyframes ripple { to { transform: scale(2.5); opacity: 0; } }
+
+    .a-up   { animation: fadeUp 0.38s var(--ease) both; }
+    .a-up-1 { animation-delay: 0.05s; }
+    .a-up-2 { animation-delay: 0.10s; }
+    .a-up-3 { animation-delay: 0.15s; }
+    .a-up-4 { animation-delay: 0.20s; }
+    .a-up-5 { animation-delay: 0.25s; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--s1); }
+    ::-webkit-scrollbar-thumb { background: var(--border-d); border-radius: 99px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .mm-wrap { padding: 1.5rem 1rem; }
+      .mm-nav-a span { display: none; }
+      .page-title { font-size: 22px; }
+    }
+
+    {% block extra_styles %}{% endblock %}
+  </style>
   {% block extra_head %}{% endblock %}
 </head>
-
 <body>
 
-  <!--start header-->
-  <header class="top-header">
-    <nav class="navbar navbar-expand align-items-center justify-content-between gap-4 container-xxl px-4">
-      <div class="logo-header d-none d-xl-flex align-items-center gap-2">
-        <div class="logo-icon">
-          <img src="{% static 'assets/images/logo-icon.png' %}" class="logo-img" width="45" alt="">
-        </div>
-        <div class="logo-name">
-          <h5 class="mb-0">MigrationMind</h5>
-        </div>
-      </div>
-      <div class="btn-toggle d-xl-none" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
-        <a href="javascript:;"><i class="material-icons-outlined">menu</i></a>
-      </div>
-      
-      <ul class="navbar-nav gap-1 nav-right-links align-items-center ms-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" data-bs-auto-close="outside"
-            data-bs-toggle="dropdown" href="javascript:;"><i class="material-icons-outlined">notifications</i>
-            <span class="badge-notify">0</span>
-          </a>
-        </li>
-        <li class="nav-item dropdown">
-          <a href="javascript:;" class="dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown">
-             <img src="{% static 'assets/images/avatars/01.png' %}" class="rounded-circle p-1 border" width="45" height="45" alt="">
-          </a>
-          <div class="dropdown-menu dropdown-user dropdown-menu-end shadow">
-            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="javascript:;"><i
-            class="material-icons-outlined">power_settings_new</i>Logout</a>
-          </div>
-        </li>
-      </ul>
-    </nav>
-  </header>
-  <!--end top header-->
-
-  <!--navigation-->
-  <div class="primary-menu">
-    <nav class="navbar navbar-expand-xl align-items-center container-xxl px-4">
-    <div class="offcanvas offcanvas-start w-260" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-    <div class="offcanvas-header border-bottom h-70">
-      <div class="d-flex align-items-center gap-2">
-        <div class="">
-          <img src="{% static 'assets/images/logo-icon.png' %}" class="logo-icon" width="45" alt="logo icon">
-        </div>
-        <div class="">
-          <h4 class="logo-text">MigrationMind</h4>
-        </div>
-      </div>
-      <a href="javascript:;" class="primaery-menu-close" data-bs-dismiss="offcanvas">
-        <i class="material-icons-outlined">close</i>
-      </a>
+<header class="mm-top">
+  <a href="/" class="mm-logo">
+    <div class="mm-logo-mark">
+      <img src="{% static 'assets/images/logo-icon.png' %}" alt="M"
+           onerror="this.parentElement.innerHTML='<svg width=16 height=16 viewBox=\'0 0 16 16\' fill=\'none\'><path d=\'M2 13L5.5 5.5L8 9L10.5 5.5L14 13\' stroke=\'white\' stroke-width=\'2\' stroke-linejoin=\'round\' stroke-linecap=\'round\'/></svg>'">
     </div>
-    <div class="offcanvas-body p-0">
-      <ul class="navbar-nav align-items-center flex-grow-1">
-        
-        <li class="nav-item">
-          <a class="nav-link" href="/">
-            <div class="parent-icon"><i class="material-icons-outlined">home</i></div>
-            <div class="menu-title d-flex align-items-center">Upload / Start</div>
-          </a>
-        </li>
+    <span class="mm-logo-text">Migration<em>Mind</em></span>
+  </a>
 
-        <li class="nav-item">
-          <a class="nav-link" href="/assessments/">
-            <div class="parent-icon"><i class='material-icons-outlined'>apps</i></div>
-            <div class="menu-title d-flex align-items-center">Assessments</div>
-          </a>
-        </li>
+  <nav class="mm-nav">
+    <a href="/" class="mm-nav-a {% block nav_home %}{% endblock %}">
+      <i class="ph ph-upload-simple"></i><span>Upload / Start</span>
+    </a>
+    <a href="/assessments/" class="mm-nav-a {% block nav_assess %}{% endblock %}">
+      <i class="ph ph-squares-four"></i><span>Assessments</span>
+    </a>
+    <a href="/governance/" class="mm-nav-a {% block nav_gov %}{% endblock %}">
+      <i class="ph ph-seal-check"></i><span>Governance & Sign-off</span>
+    </a>
+  </nav>
 
-        <li class="nav-item">
-          <a class="nav-link" href="/governance/">
-            <div class="parent-icon"><i class='material-icons-outlined'>gavel</i></div>
-            <div class="menu-title d-flex align-items-center">Governance & Sign-off</div>
-          </a>
-        </li>
-        
+  <div class="mm-top-r">
+    <a href="javascript:;" class="mm-icon-btn" title="Notifications">
+      <i class="ph ph-bell" style="font-size:17px;"></i>
+      <span class="mm-notif-pip"></span>
+    </a>
+    <div class="dropdown">
+      <div class="mm-avt" data-bs-toggle="dropdown" role="button">
+        <img src="{% static 'assets/images/avatars/01.png' %}" alt="User"
+             onerror="this.style.display='none';this.parentElement.style.cssText='width:34px;height:34px;border-radius:50%;border:2px solid var(--teal-mid);background:var(--teal-pale);display:flex;align-items:center;justify-content:center;font-family:var(--f-d);font-weight:800;font-size:14px;color:var(--teal-d);'">
+      </div>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="javascript:;">
+          <i class="ph ph-sign-out" style="font-size:16px;"></i> Sign out
+        </a></li>
       </ul>
     </div>
-    </div>
-    </nav>
   </div>
-  <!--end navigation-->
+</header>
 
-  <!--start main wrapper (pushed down to clear native fixed header) -->
-  <main class="main-wrapper" style="padding-top: 140px;">
-    <div class="main-content container-xxl">
-      
-      <!-- Content Block -->
-      {% block content %}
-      {% endblock %}
-      <!-- End Content Block -->
+<main class="mm-main">
+  <div class="mm-wrap">
+    {% block content %}{% endblock %}
+  </div>
+</main>
 
-    </div>
-  </main>
-  <!--end main wrapper-->
+<footer class="mm-footer">
+  Powered by Azure AI Foundry &nbsp;&middot;&nbsp; Azure MCP &nbsp;&middot;&nbsp; Microsoft Agent Framework
+</footer>
 
-  <!--start overlay-->
-  <div class="overlay btn-toggle"></div>
-  <!--end overlay-->
-
-   <!--start footer-->
-   <footer class="page-footer">
-     <div class="container-xxl px-4 text-center">
-      <p class="mb-0">Powered by Azure AI Foundry, Azure MCP, and Microsoft Agent Framework.</p>
-     </div>
-  </footer>
-  <!--end footer-->
-
-  <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
-  <script src="{% static 'assets/js/jquery.min.js' %}"></script>
-  <script src="{% static 'assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js' %}"></script>
-  <script src="{% static 'assets/plugins/metismenu/metisMenu.min.js' %}"></script>
-  <script src="{% static 'assets/plugins/simplebar/js/simplebar.min.js' %}"></script>
-  <script src="{% static 'assets/js/main.js' %}"></script>
-  
-  {% block extra_scripts %}{% endblock %}
-
+<script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery.min.js' %}"></script>
+<script>
+// Ripple on all .btn-mm
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-mm');
+  if (!btn) return;
+  const r = document.createElement('span');
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  r.style.cssText = `position:absolute;width:${size}px;height:${size}px;border-radius:50%;background:rgba(255,255,255,0.35);transform:scale(0);left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;animation:ripple 0.55s ease-out forwards;pointer-events:none;`;
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+});
+</script>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>
