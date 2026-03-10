@@ -1,11 +1,24 @@
 .
-├── app-chat-box.html
-├── app-emailbox.html
-├── app-emailread.html
-├── app-file-manager.html
-├── app-fullcalender.html
-├── app-invoice.html
-├── app-to-do.html
+├── agent_runtime
+│   ├── __pycache__
+│   │   └── function_app.cpython-310.pyc
+│   ├── function_app.py
+│   ├── host.json
+│   ├── local.settings.json
+│   ├── requirements.txt
+│   ├── src
+│   │   └── migrationmind_agents
+│   │       ├── __pycache__
+│   │       │   └── contracts.cpython-310.pyc
+│   │       ├── agents
+│   │       │   ├── __pycache__
+│   │       │   ├── accountant.py
+│   │       │   ├── architect.py
+│   │       │   └── risk_officer.py
+│   │       ├── contracts.py
+│   │       └── persistence
+│   │           ├── __pycache__
+│   │           └── mysql_repo.py
 ├── assets
 │   ├── css
 │   │   ├── bootstrap-extended.css
@@ -26,160 +39,11 @@
 │   │   ├── boxicons.woff
 │   │   └── boxicons.woff2
 │   ├── images
-│   │   ├── apps
-│   │   │   ├── 01.png
-│   │   │   ├── 02.png
-│   │   │   ├── 03.png
-│   │   │   ├── 04.png
-│   │   │   ├── 05.png
-│   │   │   ├── 06.png
-│   │   │   ├── 07.png
-│   │   │   ├── 08.png
-│   │   │   ├── 09.png
-│   │   │   ├── 10.png
-│   │   │   ├── 11.png
-│   │   │   ├── 12.png
-│   │   │   ├── 13.png
-│   │   │   ├── 14.png
-│   │   │   ├── 15.png
-│   │   │   ├── 16.png
-│   │   │   ├── 17.png
-│   │   │   ├── 18.png
-│   │   │   ├── 19.png
-│   │   │   ├── 20.png
-│   │   │   ├── amazon.png
-│   │   │   ├── apple.png
-│   │   │   ├── behance.png
-│   │   │   ├── gift-box-2.png
-│   │   │   ├── gift-box-3.png
-│   │   │   ├── gift-box.png
-│   │   │   ├── party-popper.png
-│   │   │   ├── paypal.png
-│   │   │   └── twitter-circle.png
 │   │   ├── auth
 │   │   │   ├── forgot-password1.png
 │   │   │   ├── login1.png
 │   │   │   ├── register1.png
 │   │   │   └── reset-password1.png
-│   │   ├── avatars
-│   │   │   ├── 01.png
-│   │   │   ├── 02.png
-│   │   │   ├── 03.png
-│   │   │   ├── 04.png
-│   │   │   ├── 05.png
-│   │   │   ├── 06.png
-│   │   │   ├── 07.png
-│   │   │   ├── 08.png
-│   │   │   ├── 09.png
-│   │   │   ├── 10.png
-│   │   │   ├── 11.png
-│   │   │   └── 12.png
-│   │   ├── bg-themes
-│   │   │   └── body-background-1.webp
-│   │   ├── carousels
-│   │   │   ├── 01.png
-│   │   │   ├── 02.png
-│   │   │   ├── 03.png
-│   │   │   ├── 04.png
-│   │   │   ├── 05.png
-│   │   │   ├── 06.png
-│   │   │   ├── 07.png
-│   │   │   ├── 08.png
-│   │   │   ├── 09.png
-│   │   │   ├── 10.png
-│   │   │   ├── 11.png
-│   │   │   ├── 12.png
-│   │   │   ├── 13.png
-│   │   │   ├── 14.png
-│   │   │   └── 15.png
-│   │   ├── cat
-│   │   │   ├── 01.png
-│   │   │   ├── 02.png
-│   │   │   ├── 03.png
-│   │   │   ├── 04.png
-│   │   │   ├── 05.png
-│   │   │   └── 06.png
-│   │   ├── county
-│   │   │   ├── 01.png
-│   │   │   ├── 02.png
-│   │   │   ├── 03.png
-│   │   │   ├── 04.png
-│   │   │   ├── 05.png
-│   │   │   ├── 06.png
-│   │   │   ├── 07.png
-│   │   │   └── 08.png
-│   │   ├── favicon-32x32.png
-│   │   ├── gallery
-│   │   │   ├── 01.png
-│   │   │   ├── 02.png
-│   │   │   ├── 03.png
-│   │   │   ├── 04.png
-│   │   │   ├── 05.png
-│   │   │   ├── 06.png
-│   │   │   ├── 07.png
-│   │   │   ├── 08.png
-│   │   │   ├── 09.png
-│   │   │   ├── 10.png
-│   │   │   ├── 11.png
-│   │   │   ├── 12.png
-│   │   │   ├── 13.png
-│   │   │   ├── 14.png
-│   │   │   ├── 15.png
-│   │   │   ├── 16.png
-│   │   │   ├── 17.png
-│   │   │   ├── 18.png
-│   │   │   ├── 19.png
-│   │   │   ├── 20.png
-│   │   │   ├── 21.png
-│   │   │   ├── 22.png
-│   │   │   ├── 23.png
-│   │   │   ├── 24.png
-│   │   │   ├── 25.png
-│   │   │   ├── 26.png
-│   │   │   ├── profile-cover-min.png
-│   │   │   └── welcome-back-3.png
-│   │   ├── logo-icon.png
-│   │   ├── logo1.png
-│   │   ├── megaIcons
-│   │   │   ├── 01.png
-│   │   │   ├── 02.png
-│   │   │   ├── 03.png
-│   │   │   ├── 04.png
-│   │   │   ├── 05.png
-│   │   │   ├── 06.png
-│   │   │   ├── 07.png
-│   │   │   ├── 08.png
-│   │   │   ├── 09.png
-│   │   │   ├── 10.png
-│   │   │   ├── 11.png
-│   │   │   ├── 12.png
-│   │   │   └── 13.png
-│   │   ├── orders
-│   │   │   ├── 01.png
-│   │   │   ├── 02.png
-│   │   │   ├── 03.png
-│   │   │   ├── 04.png
-│   │   │   ├── 05.png
-│   │   │   ├── 06.png
-│   │   │   ├── 07.png
-│   │   │   ├── 08.png
-│   │   │   └── 09.png
-│   │   ├── projects
-│   │   │   ├── angular.png
-│   │   │   ├── bootstrap.png
-│   │   │   ├── django.png
-│   │   │   ├── magento.png
-│   │   │   ├── python.png
-│   │   │   ├── react.png
-│   │   │   └── vue.png
-│   │   └── top-products
-│   │       ├── 01.png
-│   │       ├── 02.png
-│   │       ├── 03.png
-│   │       ├── 04.png
-│   │       ├── 05.png
-│   │       ├── 06.png
-│   │       └── 07.png
 │   ├── js
 │   │   ├── bootstrap.bundle.min.js
 │   │   ├── bootstrap.bundle.min.js.map
@@ -316,73 +180,137 @@
 │           ├── jquery-jvectormap-us-aea-en.js
 │           ├── jquery-jvectormap-world-mill-en.js
 │           └── jvectormap.custom.js
-├── auth-basic-forgot-password.html
-├── auth-basic-login.html
-├── auth-basic-register.html
-├── auth-basic-reset-password.html
-├── auth-boxed-forgot-password.html
-├── auth-boxed-login.html
-├── auth-boxed-register.html
-├── auth-boxed-reset-password.html
-├── auth-cover-forgot-password.html
-├── auth-cover-login.html
-├── auth-cover-register.html
-├── auth-cover-reset-password.html
-├── cards.html
-├── charts-apex-chart.html
-├── charts-chartjs.html
-├── component-accordions.html
-├── component-alerts.html
-├── component-avtars-chips.html
-├── component-badges.html
-├── component-buttons.html
-├── component-cards-advance.html
-├── component-cards-basic.html
-├── component-cards-contact.html
-├── component-carousels.html
-├── component-media-object.html
-├── component-modals.html
-├── component-navbar.html
-├── component-navs-tabs.html
-├── component-notifications.html
-├── component-paginations.html
-├── component-popovers-tooltips.html
-├── component-progress-bars.html
-├── component-spinners.html
-├── component-text-utilities.html
-├── component-typography.html
-├── ecommerce-add-product.html
-├── ecommerce-customer-details.html
-├── ecommerce-customers.html
-├── ecommerce-order-details.html
-├── ecommerce-orders.html
-├── ecommerce-products.html
-├── faq.html
-├── form-date-time-pickes.html
-├── form-elements.html
-├── form-file-upload.html
-├── form-input-group.html
-├── form-layouts.html
-├── form-radios-and-checkboxes.html
-├── form-repeater.html
-├── form-select2.html
-├── form-validations.html
-├── form-wizard.html
-├── icons-boxicons.html
-├── icons-feather-icons.html
-├── icons-line-icons.html
-├── index-dark.html
-├── index-light.html
-├── index.html
-├── index2.html
-├── map-google-maps.html
-├── map-vector-maps.html
-├── pages-coming-soon.html
-├── pages-error-403.html
-├── pages-error-404.html
-├── pages-error-505.html
-├── pages-starter-page.html
-├── pricing-table.html
+├── django_app
+│   ├── apps
+│   │   └── core
+│   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       │   ├── __init__.cpython-310.pyc
+│   │       │   ├── admin.cpython-310.pyc
+│   │       │   ├── apps.cpython-310.pyc
+│   │       │   ├── models.cpython-310.pyc
+│   │       │   └── urls.cpython-310.pyc
+│   │       ├── admin.py
+│   │       ├── apps.py
+│   │       ├── migrations
+│   │       │   ├── 0001_initial.py
+│   │       │   ├── __init__.py
+│   │       │   └── __pycache__
+│   │       ├── models.py
+│   │       ├── services
+│   │       │   ├── __init__.py
+│   │       │   ├── __pycache__
+│   │       │   └── enqueue.py
+│   │       ├── static
+│   │       │   ├── assets
+│   │       │   └── sass
+│   │       ├── templates
+│   │       │   ├── base.html
+│   │       │   └── core
+│   │       ├── tests.py
+│   │       ├── urls.py
+│   │       ├── views
+│   │       │   ├── __init__.py
+│   │       │   ├── __pycache__
+│   │       │   ├── api.py
+│   │       │   └── pages.py
+│   │       └── views.py
+│   ├── db.sqlite3
+│   ├── manage.py
+│   ├── migrationmind
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── settings.cpython-310.pyc
+│   │   │   ├── urls.cpython-310.pyc
+│   │   │   └── wsgi.cpython-310.pyc
+│   │   ├── asgi.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   ├── requirements.txt
+├── old_pages
+│   ├── app-chat-box.html
+│   ├── app-emailbox.html
+│   ├── app-emailread.html
+│   ├── app-file-manager.html
+│   ├── app-fullcalender.html
+│   ├── app-invoice.html
+│   ├── app-to-do.html
+│   ├── auth-basic-forgot-password.html
+│   ├── auth-basic-login.html
+│   ├── auth-basic-register.html
+│   ├── auth-basic-reset-password.html
+│   ├── auth-boxed-forgot-password.html
+│   ├── auth-boxed-login.html
+│   ├── auth-boxed-register.html
+│   ├── auth-boxed-reset-password.html
+│   ├── auth-cover-forgot-password.html
+│   ├── auth-cover-login.html
+│   ├── auth-cover-register.html
+│   ├── auth-cover-reset-password.html
+│   ├── cards.html
+│   ├── charts-apex-chart.html
+│   ├── charts-chartjs.html
+│   ├── component-accordions.html
+│   ├── component-alerts.html
+│   ├── component-avtars-chips.html
+│   ├── component-badges.html
+│   ├── component-buttons.html
+│   ├── component-cards-advance.html
+│   ├── component-cards-basic.html
+│   ├── component-cards-contact.html
+│   ├── component-carousels.html
+│   ├── component-media-object.html
+│   ├── component-modals.html
+│   ├── component-navbar.html
+│   ├── component-navs-tabs.html
+│   ├── component-notifications.html
+│   ├── component-paginations.html
+│   ├── component-popovers-tooltips.html
+│   ├── component-progress-bars.html
+│   ├── component-spinners.html
+│   ├── component-text-utilities.html
+│   ├── component-typography.html
+│   ├── ecommerce-add-product.html
+│   ├── ecommerce-customer-details.html
+│   ├── ecommerce-customers.html
+│   ├── ecommerce-order-details.html
+│   ├── ecommerce-orders.html
+│   ├── ecommerce-products.html
+│   ├── faq.html
+│   ├── form-date-time-pickes.html
+│   ├── form-elements.html
+│   ├── form-file-upload.html
+│   ├── form-input-group.html
+│   ├── form-layouts.html
+│   ├── form-radios-and-checkboxes.html
+│   ├── form-repeater.html
+│   ├── form-select2.html
+│   ├── form-validations.html
+│   ├── form-wizard.html
+│   ├── icons-boxicons.html
+│   ├── icons-feather-icons.html
+│   ├── icons-line-icons.html
+│   ├── index-dark.html
+│   ├── index-light.html
+│   ├── index.html
+│   ├── index2.html
+│   ├── map-google-maps.html
+│   ├── map-vector-maps.html
+│   ├── pages-coming-soon.html
+│   ├── pages-error-403.html
+│   ├── pages-error-404.html
+│   ├── pages-error-505.html
+│   ├── pages-starter-page.html
+│   ├── pricing-table.html
+│   ├── table-basic-table.html
+│   ├── table-datatable.html
+│   ├── timeline.html
+│   ├── user-profile.html
+│   ├── widgets-data.html
+│   └── widgets-static.html
+├── requirements.txt
 ├── sass
 │   ├── blue-theme.css
 │   ├── blue-theme.css.map
@@ -402,12 +330,6 @@
 │   ├── semi-dark.css
 │   ├── semi-dark.css.map
 │   └── semi-dark.scss
-├── table-basic-table.html
-├── table-datatable.html
-├── timeline.html
-├── tree.txt
-├── user-profile.html
-├── widgets-data.html
-└── widgets-static.html
+└── tree.txt
 
-58 directories, 352 files
+99 directories, 427 files

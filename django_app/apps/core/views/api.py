@@ -69,3 +69,4 @@ class WaveCompleteAPI(APIView):
             
         except Assessment.DoesNotExist:
             return Response({"error": "Assessment not found"}, status=status.HTTP_404_NOT_FOUND)
+
