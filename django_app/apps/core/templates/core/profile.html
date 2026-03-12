@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_styles %}
+.profile-grid{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start;}
+@media(max-width:900px){.profile-grid{grid-template-columns:1fr;}}
+
+.profile-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-sm);overflow:hidden;}
+.profile-banner{height:80px;background:linear-gradient(135deg,var(--teal) 0%,var(--blue) 60%,#8B5CF6 100%);position:relative;}
+.profile-banner::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,0) 0,rgba(255,255,255,0) 10px,rgba(255,255,255,0.06) 10px,rgba(255,255,255,0.06) 20px);}
+.profile-avatar-wrap{position:relative;margin:-36px 0 0 1.25rem;display:inline-block;}
+.profile-avatar{width:72px;height:72px;border-radius:50%;border:3px solid var(--white);background:var(--teal-pale);display:flex;align-items:center;justify-content:center;font-family:var(--f-d);font-weight:800;font-size:28px;color:var(--teal-d);overflow:hidden;box-shadow:var(--sh-md);cursor:pointer;transition:all 0.2s;}
+.profile-avatar:hover{transform:scale(1.05);}
+.profile-avatar:hover::after{content:'Edit';position:absolute;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;color:white;font-family:var(--f-m);font-size:11px;border-radius:50%;}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;}
+.avatar-edit-btn{position:absolute;bottom:2px;right:2px;width:22px;height:22px;border-radius:50%;background:var(--teal);border:2px solid var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:white;}
+
+.settings-section{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-sm);padding:1.75rem;margin-bottom:1.25rem;}
+.settings-section:last-child{margin-bottom:0;}
+.section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1.5px solid var(--border);}
+.section-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.si-teal{background:var(--teal-pale);color:var(--teal-d);}
+.si-blue{background:var(--blue-pale);color:var(--blue-d);}
+.si-amber{background:var(--amber-pale);color:var(--amber-d);}
+.si-coral{background:var(--coral-pale);color:var(--coral-d);}
+.section-title{font-family:var(--f-d);font-size:15px;font-weight:800;letter-spacing:-0.3px;}
+.section-sub{font-size:12.5px;color:var(--ink-3);}
+.field-row{margin-bottom:1.1rem;}
+.field-label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
+.field-hint{font-size:11.5px;color:var(--ink-4);margin-top:4px;}
+.alert-success{background:var(--teal-pale);border:1.5px solid var(--teal-mid);color:var(--teal-d);border-radius:var(--r-md);padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;}
+.alert-error{background:var(--coral-pale);border:1.5px solid var(--coral-mid);color:var(--coral-d);border-radius:var(--r-md);padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;}
+.stat-mini{text-align:center;padding:1rem 0;}
+.stat-mini .val{font-family:var(--f-d);font-size:26px;font-weight:800;letter-spacing:-1px;}
+.stat-mini .lbl{font-family:var(--f-m);font-size:10.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4 a-up">
+  <div>
+    <div class="mm-bc">
+      <a href="/"><i class="ph ph-house" style="font-size:15px;"></i></a>
+      <span class="mm-bc-sep">›</span>
+      <span style="color:var(--ink-3);">Profile &amp; Settings</span>
+    </div>
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-sub">Manage your account, avatar, and security settings</p>
+  </div>
+</div>
+
+{% if success %}
+<div class="alert-success a-up"><i class="ph ph-check-circle" style="font-size:17px;flex-shrink:0;"></i>{{ success }}</div>
+{% endif %}
+{% if error %}
+<div class="alert-error a-up"><i class="ph ph-warning-circle" style="font-size:17px;flex-shrink:0;"></i>{{ error }}</div>
+{% endif %}
+
+<div class="profile-grid">
+
+  <!-- ── LEFT: Card ── -->
+  <div>
+    <div class="profile-card a-up a-up-1">
+      <div class="profile-banner"></div>
+      <div style="padding:0 1.25rem 1.5rem;">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar" id="avatar-display" onclick="document.getElementById('avatar-file').click()">
+            {% if profile.avatar_data %}
+              <img src="{{ profile.avatar_data }}" alt="avatar" id="avatar-img">
+            {% else %}
+              <span id="avatar-initials">{{ user.first_name|first|upper|default:user.username|first|upper }}</span>
+            {% endif %}
+          </div>
+          <div class="avatar-edit-btn" onclick="document.getElementById('avatar-file').click()">
+            <i class="ph ph-pencil-simple"></i>
+          </div>
+          <input type="file" id="avatar-file" accept="image/*" style="display:none;">
+        </div>
+        <div style="margin-top:0.75rem;">
+          <p style="font-family:var(--f-d);font-size:18px;font-weight:800;letter-spacing:-0.4px;margin-bottom:2px;">{{ user.first_name|default:user.username }}</p>
+          <p style="font-family:var(--f-m);font-size:12px;color:var(--ink-4);">@{{ user.username }}</p>
+          {% if profile.bio %}
+          <p style="font-size:13px;color:var(--ink-3);margin-top:8px;line-height:1.6;">{{ profile.bio }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="border-top:1.5px solid var(--border);display:grid;grid-template-columns:1fr 1fr;">
+        <div class="stat-mini" style="border-right:1px solid var(--border);">
+          <p class="val" style="color:var(--teal-d);">{{ assessments.count }}</p>
+          <p class="lbl">Assessments</p>
+        </div>
+        <div class="stat-mini">
+          <p class="val" style="color:var(--blue-d);">{{ user.date_joined|date:"Y" }}</p>
+          <p class="lbl">Member since</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent notifications -->
+    <div class="settings-section a-up a-up-2" style="margin-top:1.25rem;">
+      <div class="section-hdr">
+        <div class="section-icon si-blue"><i class="ph ph-bell"></i></div>
+        <div>
+          <p class="section-title">Recent Notifications</p>
+          <p class="section-sub">Last 5 events</p>
+        </div>
+      </div>
+      {% for n in notifications|slice:":5" %}
+      <div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none;{% endif %}">
+        <div style="width:7px;height:7px;border-radius:50%;background:{% if n.is_read %}var(--ink-5){% else %}var(--teal){% endif %};flex-shrink:0;"></div>
+        <div>
+          <p style="font-size:12.5px;font-weight:600;color:var(--ink-2);margin:0;">{{ n.title }}</p>
+          <p style="font-size:11.5px;color:var(--ink-4);margin:0;font-family:var(--f-m);">{{ n.created_at|date:"M d, h:i A" }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <p style="font-size:13px;color:var(--ink-4);text-align:center;padding:1rem 0;">No notifications yet</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── RIGHT: Settings ── -->
+  <div class="a-up a-up-2">
+
+    <!-- Profile Info -->
+    <div class="settings-section">
+      <div class="section-hdr">
+        <div class="section-icon si-teal"><i class="ph ph-user-circle"></i></div>
+        <div>
+          <p class="section-title">Profile Information</p>
+          <p class="section-sub">Update your display name and bio</p>
+        </div>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_info">
+        <div class="field-row">
+          <label class="field-label">Display Name</label>
+          <input class="mm-input" type="text" name="display_name" value="{{ user.first_name }}" placeholder="Your full name">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Username</label>
+          <input class="mm-input" type="text" value="{{ user.username }}" disabled style="opacity:0.55;cursor:not-allowed;">
+          <p class="field-hint">Username cannot be changed.</p>
+        </div>
+        <div class="field-row" style="margin-bottom:1.5rem;">
+          <label class="field-label">Bio <span style="color:var(--ink-4);font-weight:400;">(optional)</span></label>
+          <textarea class="mm-input" name="bio" rows="3" placeholder="Tell us a bit about yourself or your role..." style="resize:vertical;">{{ profile.bio }}</textarea>
+        </div>
+        <button type="submit" class="btn-mm btn-teal">
+          <i class="ph ph-floppy-disk"></i> Save Profile
+        </button>
+      </form>
+    </div>
+
+    <!-- Avatar Upload -->
+    <div class="settings-section">
+      <div class="section-hdr">
+        <div class="section-icon si-blue"><i class="ph ph-image"></i></div>
+        <div>
+          <p class="section-title">Profile Photo</p>
+          <p class="section-sub">Upload a custom avatar (PNG, JPG, max 2MB)</p>
+        </div>
+      </div>
+      <form method="post" id="avatar-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_avatar">
+        <input type="hidden" name="avatar_data" id="avatar-data-field">
+        <div style="display:flex;align-items:center;gap:1.25rem;">
+          <div style="width:64px;height:64px;border-radius:50%;border:2px solid var(--border);overflow:hidden;background:var(--teal-pale);display:flex;align-items:center;justify-content:center;font-family:var(--f-d);font-weight:800;font-size:24px;color:var(--teal-d);">
+            {% if profile.avatar_data %}<img src="{{ profile.avatar_data }}" style="width:100%;height:100%;object-fit:cover;" id="avatar-preview">
+            {% else %}<span id="avatar-preview">{{ user.first_name|first|upper|default:user.username|first|upper }}</span>{% endif %}
+          </div>
+          <div>
+            <button type="button" class="btn-mm btn-ghost" onclick="document.getElementById('avatar-file2').click()">
+              <i class="ph ph-upload-simple"></i> Choose Photo
+            </button>
+            <input type="file" id="avatar-file2" accept="image/*" style="display:none;">
+            <p style="font-size:12px;color:var(--ink-4);margin-top:6px;">JPG or PNG recommended</p>
+          </div>
+        </div>
+        <div style="margin-top:1.25rem;" id="avatar-save-row" style="display:none;">
+          <button type="submit" class="btn-mm btn-teal" id="btn-save-avatar" style="display:none;">
+            <i class="ph ph-floppy-disk"></i> Save Avatar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Change Password -->
+    <div class="settings-section">
+      <div class="section-hdr">
+        <div class="section-icon si-amber"><i class="ph ph-lock-key"></i></div>
+        <div>
+          <p class="section-title">Change Password</p>
+          <p class="section-sub">Keep your account secure with a strong password</p>
+        </div>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_password">
+        <div class="field-row">
+          <label class="field-label">Current Password</label>
+          <input class="mm-input" type="password" name="old_password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <div class="field-row" style="margin-bottom:1.5rem;">
+          <label class="field-label">New Password</label>
+          <input class="mm-input" type="password" name="new_password" placeholder="••••••••" autocomplete="new-password" required minlength="6">
+          <p class="field-hint">Minimum 6 characters.</p>
+        </div>
+        <button type="submit" class="btn-mm btn-amber">
+          <i class="ph ph-lock-key-open"></i> Update Password
+        </button>
+      </form>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-section" style="border-color:var(--coral-mid);">
+      <div class="section-hdr">
+        <div class="section-icon si-coral"><i class="ph ph-warning-octagon"></i></div>
+        <div>
+          <p class="section-title" style="color:var(--coral-d);">Danger Zone</p>
+          <p class="section-sub">Irreversible account actions</p>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-3);margin-bottom:1rem;">Signing out will end your current session on this device.</p>
+      <a href="/logout/" class="btn-mm btn-ghost" style="border-color:var(--coral-mid);color:var(--coral-d);">
+        <i class="ph ph-sign-out"></i> Sign out of all sessions
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Avatar file picker → base64 preview → hidden field
+function bindFilePicker(inputId) {
+  document.getElementById(inputId).addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    if (file.size > 2*1024*1024) { alert('File too large. Max 2MB.'); return; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const data = e.target.result;
+      // Update all previews
+      document.querySelectorAll('#avatar-preview, #avatar-img').forEach(el => {
+        if (el.tagName === 'IMG') { el.src = data; }
+      });
+      const initials = document.getElementById('avatar-initials');
+      if (initials) initials.style.display = 'none';
+      document.getElementById('avatar-display').innerHTML = '<img src="' + data + '" style="width:100%;height:100%;object-fit:cover;">';
+      // Set hidden field and show save button
+      document.getElementById('avatar-data-field').value = data;
+      document.getElementById('btn-save-avatar').style.display = 'inline-flex';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+bindFilePicker('avatar-file');
+bindFilePicker('avatar-file2');
+// Sync both file inputs
+document.getElementById('avatar-file').addEventListener('change', function() {
+  if (this.files[0]) {
+    const dt = new DataTransfer();
+    dt.items.add(this.files[0]);
+    document.getElementById('avatar-file2').files = dt.files;
+  }
+});
+</script>
+{% endblock %}

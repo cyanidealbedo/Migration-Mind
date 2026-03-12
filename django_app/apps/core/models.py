@@ -2,6 +2,8 @@
 import logging
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
+from django.db import models
 
 logger = logging.getLogger(__name__)
 
@@ -117,3 +119,46 @@ class AgentRun(models.Model):
 
     def __str__(self):
         return f"{self.agent_name} run for {self.assessment.id} [{self.status}]"
+
+
+
+class UserProfile(models.Model):
+    user       = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    bio        = models.TextField(blank=True, default='')
+    avatar_data = models.TextField(blank=True, default='')   # base64 data URI
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Profile({self.user.username})"
+
+
+class Notification(models.Model):
+    class Level(models.TextChoices):
+        INFO    = 'info',    'Info'
+        SUCCESS = 'success', 'Success'
+        WARNING = 'warning', 'Warning'
+        ERROR   = 'error',   'Error'
+
+    user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title      = models.CharField(max_length=200)
+    body       = models.TextField(blank=True, default='')
+    level      = models.CharField(max_length=10, choices=Level.choices, default=Level.INFO)
+    is_read    = models.BooleanField(default=False)
+    link       = models.CharField(max_length=300, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.level}] {self.title} → {self.user.username}"
+
+
+# ── HELPER: call this from function_app.py / api.py to fire notifications ──
+def notify(user, title, body='', level='info', link=''):
+    """Create a Notification for a user. Safe to call from anywhere."""
+    if user is None:
+        return
+    Notification.objects.create(user=user, title=title, body=body, level=level, link=link)
+
+
