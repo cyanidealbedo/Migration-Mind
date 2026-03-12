@@ -6,247 +6,382 @@
 {% block extra_styles %}
 /* ── HERO BANNER ── */
 .gov-hero {
-  background: linear-gradient(135deg, var(--blue) 0%, var(--violet) 100%);
-  border-radius: var(--r-xl); padding: 2rem;
-  position: relative; overflow: hidden;
-  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 60%, #8B5CF6 100%);
+  border-radius: var(--r-xl); padding: 2rem 2.5rem;
+  position: relative; overflow: hidden; margin-bottom: 2rem;
 }
 .gov-hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='white' fill-opacity='0.08'/%3E%3C/svg%3E");
-  pointer-events: none;
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+  background-size: 24px 24px; pointer-events: none;
 }
 .gov-hero-icon {
-  width: 52px; height: 52px; border-radius: var(--r-lg);
+  width: 52px; height: 52px; border-radius: 14px;
   background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.25);
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; color: white; flex-shrink: 0;
+  font-size: 26px; color: white; margin-bottom: 1rem;
   backdrop-filter: blur(8px);
 }
+.gov-hero h1 { font-family: var(--f-d); font-size: 22px; font-weight: 800; color: white; margin-bottom: 6px; letter-spacing: -0.5px; }
+.gov-hero p  { font-size: 13.5px; color: rgba(255,255,255,0.72); margin: 0; line-height: 1.6; }
 
-/* ── STAT ROW ── */
-.gov-stats {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 12px; margin-bottom: 2rem;
-}
+/* ── STAT CARDS ── */
 .gov-stat {
   background: var(--white); border: 1.5px solid var(--border);
-  border-radius: var(--r-xl); padding: 1.25rem;
-  text-align: center; transition: all 0.22s var(--spring);
+  border-radius: var(--r-xl); padding: 1.25rem 1.5rem;
+  transition: all 0.22s var(--spring); cursor: default;
 }
 .gov-stat:hover { box-shadow: var(--sh-md); transform: translateY(-3px); }
-.gov-stat-val { font-family: var(--f-d); font-size: 28px; font-weight: 800; letter-spacing: -1px; }
-.gov-stat-lbl { font-family: var(--f-m); font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-4); margin-top: 4px; }
+.gov-stat-num { font-family: var(--f-d); font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
+.gov-stat-label { font-family: var(--f-m); font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-4); }
 
-/* ── QUEUE ITEM ── */
+/* ── QUEUE ITEMS ── */
 .queue-item {
   background: var(--white); border: 1.5px solid var(--border);
-  border-radius: var(--r-xl); overflow: hidden;
+  border-radius: var(--r-xl); padding: 1.5rem;
   transition: all 0.22s var(--spring); margin-bottom: 1rem;
+  position: relative; overflow: hidden;
 }
-.queue-item:hover { box-shadow: var(--sh-md); transform: translateY(-2px); }
+.queue-item:hover { box-shadow: var(--sh-md); transform: translateY(-3px); }
+.queue-item.pending { border-left: 4px solid var(--amber); border-color: var(--amber-mid); }
+.queue-item.pending:hover { border-color: var(--amber); }
+.queue-item.approved { border-left: 4px solid var(--teal); border-color: var(--teal-mid); opacity: 0.75; }
+.queue-item.approved:hover { opacity: 1; border-color: var(--teal); }
 
-.queue-accent { height: 4px; width: 100%; }
-.qa-amber  { background: linear-gradient(90deg, var(--amber), transparent 70%); }
-.qa-teal   { background: linear-gradient(90deg, var(--teal), transparent 70%); }
-.qa-coral  { background: linear-gradient(90deg, var(--coral), transparent 70%); }
-
-.queue-body { padding: 1.5rem; }
-
-.queue-meta {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
-}
-.queue-meta a {
-  font-family: var(--f-m); font-size: 12px; color: var(--blue-d); text-decoration: none;
-  background: var(--blue-pale); border: 1px solid var(--blue-mid);
-  border-radius: 4px; padding: 1px 7px; transition: all 0.15s;
-}
-.queue-meta a:hover { background: var(--blue-mid); }
-.queue-meta-sep { color: var(--ink-5); font-size: 13px; }
-
-.queue-title { font-family: var(--f-d); font-size: 16px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 8px; }
-.queue-desc { font-size: 13.5px; color: var(--ink-2); line-height: 1.7; margin-bottom: 1rem; }
-.queue-desc code {
-  font-family: var(--f-m); font-size: 12.5px;
-  background: var(--s2); border: 1px solid var(--border-d);
-  border-radius: 4px; padding: 1px 6px; color: var(--blue-d);
+.queue-item-stripe {
+  position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
 }
 
-.queue-rec {
-  background: var(--s1); border: 1px solid var(--border);
-  border-radius: var(--r-md); padding: 12px;
-  font-size: 13px; color: var(--ink-2); line-height: 1.65;
+/* ── AI RECOMMENDATION BOX ── */
+.ai-rec {
+  background: linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%);
+  border: 1.5px solid var(--blue-mid); border-radius: var(--r-lg);
+  padding: 1rem 1.25rem; margin-top: 1rem;
 }
-.queue-rec-label {
+.ai-rec-label {
   font-family: var(--f-m); font-size: 10.5px; text-transform: uppercase;
-  letter-spacing: 0.1em; color: var(--ink-4); margin-bottom: 5px;
+  letter-spacing: 0.1em; color: var(--blue-d); margin-bottom: 6px;
   display: flex; align-items: center; gap: 5px;
 }
+.ai-rec p { font-size: 13px; color: var(--ink-2); line-height: 1.65; margin: 0; }
 
-.queue-actions { display: flex; flex-direction: column; gap: 8px; }
-
-/* Approved item */
-.queue-item.approved { opacity: 0.65; }
-.queue-item.approved:hover { opacity: 0.85; }
-
-@media (max-width: 768px) {
-  .gov-stats { grid-template-columns: 1fr 1fr; }
-  .queue-actions { flex-direction: row; }
+/* ── AUDIT TABLE ── */
+.audit-run-row {
+  display: grid; grid-template-columns: 80px 100px 1fr 90px 80px;
+  gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border);
+  align-items: center; transition: background 0.15s;
 }
+.audit-run-row:last-child { border-bottom: none; }
+.audit-run-row:hover { background: var(--s1); border-radius: var(--r-sm); }
+.audit-run-row.header {
+  font-family: var(--f-m); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--ink-4); background: var(--s1);
+  border-radius: var(--r-sm) var(--r-sm) 0 0; border-bottom: 1.5px solid var(--border-d);
+}
+.agent-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  display: inline-block; margin-right: 6px;
+}
+
+/* ── ACTION BUTTONS ── */
+.btn-approve { background: var(--teal-pale); border: 1.5px solid var(--teal-mid); color: var(--teal-d); }
+.btn-approve:hover { background: var(--teal); color: white; border-color: var(--teal); }
+.btn-reject  { background: var(--coral-pale); border: 1.5px solid var(--coral-mid); color: var(--coral-d); }
+.btn-reject:hover  { background: var(--coral); color: white; border-color: var(--coral); }
+.btn-audit   { background: var(--blue-pale);  border: 1.5px solid var(--blue-mid);  color: var(--blue-d); }
+.btn-audit:hover   { background: var(--blue);  color: white; border-color: var(--blue); }
+
+/* toast */
+.gov-toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
+  padding: 14px 20px; border-radius: var(--r-xl);
+  font-family: var(--f-m); font-size: 13px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  animation: slideUp 0.3s var(--spring) both;
+  max-width: 360px;
+}
+.gov-toast.success { background: var(--teal-pale); border: 1.5px solid var(--teal-mid); color: var(--teal-d); }
+.gov-toast.error   { background: var(--coral-pale); border: 1.5px solid var(--coral-mid); color: var(--coral-d); }
+@keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
 {% endblock %}
 
 {% block content %}
 
-<!-- Page header -->
-<div class="a-up mb-4">
-  <div class="mm-bc">
-    <a href="/"><i class="ph ph-house" style="font-size:15px;"></i></a>
-    <span class="mm-bc-sep">›</span>
-    <span style="color:var(--ink-3);">Governance & Sign-off</span>
-  </div>
-  <h1 class="page-title">Governance & Sign-off</h1>
-  <p class="page-sub">Human-in-the-loop authorization queue for compliance-flagged migration actions</p>
-</div>
-
-<!-- Hero Banner -->
-<div class="gov-hero a-up a-up-1">
-  <div style="display:flex;align-items:flex-start;gap:1.25rem;">
-    <div class="gov-hero-icon">
-      <i class="ph ph-shield-check"></i>
-    </div>
+<!-- ── HERO ── -->
+<div class="gov-hero a-up">
+  <div class="gov-hero-icon"><i class="ph ph-shield-check"></i></div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
     <div>
-      <p style="font-family:var(--f-d);font-weight:800;font-size:17px;color:white;margin-bottom:5px;letter-spacing:-0.4px;">
-        Human-in-the-Loop Authorization
-      </p>
-      <p style="font-size:13.5px;color:rgba(255,255,255,0.78);max-width:600px;line-height:1.65;margin:0;">
-        The AI Risk Officer flags migration actions that require explicit human sign-off based on deterministic compliance rules. Every decision is cryptographically logged to the immutable audit trail.
-      </p>
+      <h1>Governance & Sign-off</h1>
+      <p>Human-in-the-loop approval queue for blocking risk cards. Every decision is logged to the audit trail with timestamp and approver identity.</p>
     </div>
-    <div style="margin-left:auto;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-      <span style="font-family:var(--f-m);font-size:10.5px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">Connected to</span>
-      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:6px 12px;">
-        <i class="ph ph-cloud" style="font-size:16px;color:white;"></i>
-        <span style="font-family:var(--f-m);font-size:12px;color:white;">Azure AI Foundry</span>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);font-family:var(--f-m);font-size:11.5px;color:white;">
+        <i class="ph ph-robot" style="font-size:14px;"></i> Powered by Azure AI Foundry
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ── STAT STRIP ── -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem;" class="a-up a-up-1">
+  <div class="gov-stat">
+    <p class="gov-stat-num" style="color:var(--amber-d);">{{ pending_count }}</p>
+    <p class="gov-stat-label">Pending Sign-off</p>
+  </div>
+  <div class="gov-stat">
+    <p class="gov-stat-num" style="color:var(--teal-d);">{{ signed_count }}</p>
+    <p class="gov-stat-label">Signed Off</p>
+  </div>
+  <div class="gov-stat">
+    <p class="gov-stat-num" style="color:var(--blue-d);">{{ recent_runs|length }}</p>
+    <p class="gov-stat-label">Agent Runs Audited</p>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- ── LEFT: APPROVAL QUEUE ── -->
+  <div class="col-lg-7">
+    <div class="card-mm a-up a-up-2" style="overflow:hidden;">
+      <div style="padding:1.5rem 1.75rem;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <p style="font-family:var(--f-d);font-size:16px;font-weight:800;margin-bottom:2px;">Approval Queue</p>
+          <p style="font-size:12.5px;color:var(--ink-3);margin:0;">Blocking risk cards requiring human decision before pipeline proceeds</p>
+        </div>
+        {% if pending_count > 0 %}
+        <span style="background:var(--amber);color:white;border-radius:999px;padding:3px 11px;font-family:var(--f-m);font-size:12px;font-weight:700;">{{ pending_count }}</span>
+        {% endif %}
+      </div>
+      <div style="padding:1.25rem 1.75rem;">
+
+        {% for risk in pending_risks %}
+        <div class="queue-item pending" id="risk-item-{{ risk.id }}">
+          <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:1rem;">
+            <div style="width:38px;height:38px;border-radius:10px;background:var(--amber-pale);border:1.5px solid var(--amber-mid);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--amber-d);flex-shrink:0;">
+              <i class="ph ph-warning-octagon"></i>
+            </div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px;">
+                <span class="badge-mm badge-amber">BLOCKING</span>
+                <span class="badge-mm badge-gray">Wave {{ risk.wave.wave_number }}</span>
+                <span class="badge-mm badge-blue" style="font-size:10px;">{{ risk.wave.assessment.id }}</span>
+              </div>
+              <p style="font-family:var(--f-d);font-size:15px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px;">{{ risk.risk_type }}</p>
+              <p style="font-size:13px;color:var(--ink-2);line-height:1.65;margin:0;">{{ risk.description }}</p>
+            </div>
+          </div>
+
+          <div class="ai-rec">
+            <p class="ai-rec-label"><i class="ph ph-robot" style="font-size:12px;vertical-align:middle;"></i> AI Remediation Plan</p>
+            <p>{{ risk.remediation_plan }}</p>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap;">
+            <button class="btn-mm btn-approve flex-1 btn-gov-action"
+              data-assessment="{{ risk.wave.assessment.id }}"
+              data-action="approve"
+              data-risk="{{ risk.id }}">
+              <i class="ph ph-check-circle"></i> Approve
+            </button>
+            <button class="btn-mm btn-reject flex-1 btn-gov-action"
+              data-assessment="{{ risk.wave.assessment.id }}"
+              data-action="reject"
+              data-risk="{{ risk.id }}">
+              <i class="ph ph-arrow-counter-clockwise"></i> Reject — Regenerate Plan
+            </button>
+            <button class="btn-mm btn-audit btn-gov-action"
+              data-assessment="{{ risk.wave.assessment.id }}"
+              data-action="audit"
+              data-risk="{{ risk.id }}">
+              <i class="ph ph-magnifying-glass"></i>
+            </button>
+          </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:3rem 1rem;">
+          <i class="ph ph-check-circle" style="font-size:44px;color:var(--teal-d);display:block;margin-bottom:12px;"></i>
+          <p style="font-family:var(--f-d);font-size:15px;font-weight:800;margin-bottom:4px;color:var(--teal-d);">Queue is clear</p>
+          <p style="font-size:13px;color:var(--ink-3);">All blocking risks have been reviewed.</p>
+        </div>
+        {% endfor %}
+
+        {% if signed_risks %}
+        <p class="eyebrow" style="margin-top:1.5rem;margin-bottom:10px;">Recently Signed Off</p>
+        {% for risk in signed_risks %}
+        <div class="queue-item approved">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px;">
+                <span class="badge-mm badge-teal">APPROVED</span>
+                <span class="badge-mm badge-gray">Wave {{ risk.wave.wave_number }}</span>
+              </div>
+              <p style="font-family:var(--f-d);font-size:14px;font-weight:800;margin-bottom:3px;">{{ risk.risk_type }}</p>
+              <p style="font-family:var(--f-m);font-size:11px;color:var(--ink-4);">
+                Signed off by {{ risk.signed_off_by }} · {{ risk.signed_off_at|date:"M d, Y H:i" }} UTC
+              </p>
+            </div>
+            <i class="ph ph-seal-check" style="font-size:22px;color:var(--teal-d);flex-shrink:0;"></i>
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+
       </div>
     </div>
   </div>
-</div>
 
-<!-- Stats -->
-<div class="gov-stats a-up a-up-2">
-  <div class="gov-stat">
-    <p class="gov-stat-val" style="color:var(--amber-d);">1</p>
-    <p class="gov-stat-lbl">Pending Review</p>
-  </div>
-  <div class="gov-stat">
-    <p class="gov-stat-val" style="color:var(--teal-d);">1</p>
-    <p class="gov-stat-lbl">Signed Off</p>
-  </div>
-  <div class="gov-stat">
-    <p class="gov-stat-val" style="color:var(--ink-4);">0</p>
-    <p class="gov-stat-lbl">Rejected</p>
-  </div>
-</div>
+  <!-- ── RIGHT: AGENT AUDIT TRAIL ── -->
+  <div class="col-lg-5">
+    <div class="card-mm a-up a-up-3" style="overflow:hidden;">
+      <div style="padding:1.5rem 1.75rem;border-bottom:1.5px solid var(--border);">
+        <p style="font-family:var(--f-d);font-size:16px;font-weight:800;margin-bottom:2px;">Agent Audit Trail</p>
+        <p style="font-size:12.5px;color:var(--ink-3);margin:0;">Every agent run with model, tokens, and duration for full traceability</p>
+      </div>
 
-<!-- Section: Pending -->
-<p class="eyebrow a-up a-up-3" style="margin-bottom:12px;">
-  Pending Authorization
-  <span style="background:var(--amber-pale);color:var(--amber-d);border:1.5px solid var(--amber-mid);border-radius:999px;padding:2px 9px;margin-left:6px;font-size:10.5px;">1 item</span>
-</p>
-
-<!-- Pending Item -->
-<div class="queue-item a-up a-up-3">
-  <div class="queue-accent qa-amber"></div>
-  <div class="queue-body">
-    <div class="row align-items-start g-4">
-      <div class="col-lg-8">
-        <div class="queue-meta">
-          <span class="badge-mm badge-amber">
-            <i class="ph ph-clock" style="font-size:11px;"></i> Pending Authorization
-          </span>
-          <span class="queue-meta-sep">·</span>
-          <span style="font-size:12.5px;color:var(--ink-3);">
-            Assessment: <a href="#">asm-04f1fae3</a>
-          </span>
-          <span class="queue-meta-sep">·</span>
-          <span class="badge-mm badge-blue">Wave 3</span>
+      {% if recent_runs %}
+      <div style="overflow-x:auto;">
+        <div class="audit-run-row header">
+          <span>Time</span>
+          <span>Agent</span>
+          <span>Log</span>
+          <span>Duration</span>
+          <span>Status</span>
         </div>
+        {% for run in recent_runs %}
+        <div class="audit-run-row">
+          <span style="font-family:var(--f-m);font-size:11px;color:var(--ink-4);">
+            {{ run.created_at|date:"H:i:s" }}
+          </span>
+          <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;">
+            <span class="agent-dot" style="background:
+              {% if run.agent_name == 'Surveyor' %}#34d399
+              {% elif run.agent_name == 'Architect' %}#60a5fa
+              {% elif run.agent_name == 'Accountant' %}#fbbf24
+              {% else %}#f87171{% endif %};"></span>
+            {{ run.agent_name }}
+          </span>
+          <span style="font-size:12px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ run.logs }}">
+            {{ run.logs|truncatechars:55 }}
+          </span>
+          <span style="font-family:var(--f-m);font-size:11.5px;color:var(--ink-3);">
+            {% if run.duration_ms %}{{ run.duration_ms }}ms{% else %}—{% endif %}
+          </span>
+          <span>
+            {% if run.status == 'success' %}
+            <span class="badge-mm badge-teal" style="font-size:10px;">✓ ok</span>
+            {% else %}
+            <span class="badge-mm badge-coral" style="font-size:10px;">✗ fail</span>
+            {% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding:3rem;text-align:center;">
+        <i class="ph ph-terminal" style="font-size:40px;color:var(--ink-4);display:block;margin-bottom:10px;"></i>
+        <p style="font-size:13px;color:var(--ink-3);">No agent runs recorded yet.</p>
+      </div>
+      {% endif %}
 
-        <p class="queue-title">Acceptable Downtime Exceeded — SLA Warning</p>
-        <p class="queue-desc">
-          The Architect Agent scheduled <code>Inventory-SQL</code> for offline migration.
-          The Surveyor Agent determined the data volume (4.2 TB) will require <strong>6.5 hours</strong>
-          to transfer — exceeding the strict 4-hour maintenance window by 2.5 hours.
+      {% if recent_runs %}
+      <div style="padding:1rem 1.75rem;border-top:1.5px solid var(--border);background:var(--s1);">
+        <p style="font-family:var(--f-m);font-size:11px;color:var(--ink-4);margin:0;text-align:center;">
+          <i class="ph ph-shield-check" style="font-size:13px;vertical-align:middle;"></i>
+          All runs traced via OpenTelemetry → Azure Application Insights
         </p>
-
-        <div class="queue-rec">
-          <p class="queue-rec-label">
-            <i class="ph ph-robot" style="font-size:13px;"></i>
-            AI Recommendation
-          </p>
-          Do you authorize exceeding the maintenance window by 2.5 hours, or should the Architect Agent regenerate the wave plan using continuous Azure SQL Data Sync instead of offline migration?
-        </div>
       </div>
-
-      <div class="col-lg-4">
-        <div class="queue-actions">
-          <button class="btn-mm btn-teal btn-full"
-            onclick="this.innerHTML='<i class=\'ph ph-check-circle\'></i> Signed Off';this.classList.remove('btn-teal');this.classList.add('btn-ghost-teal');this.disabled=true;">
-            <i class="ph ph-check-circle"></i>
-            Approve Downtime Exception
-          </button>
-          <button class="btn-mm btn-ghost-coral btn-full"
-            onclick="alert('Sending rejection to orchestrator — wave plan will be regenerated.');">
-            <i class="ph ph-arrow-counter-clockwise"></i>
-            Reject — Regenerate Plan
-          </button>
-          <button class="btn-mm btn-ghost btn-full" style="font-size:12.5px;">
-            <i class="ph ph-clipboard-text"></i>
-            View Audit Log
-          </button>
-        </div>
-      </div>
+      {% endif %}
     </div>
   </div>
+
 </div>
 
-<!-- Section: Completed -->
-<p class="eyebrow a-up a-up-4" style="margin-bottom:12px;margin-top:2rem;">Sign-off History</p>
+<!-- Toast container -->
+<div id="toast-container"></div>
 
-<!-- Approved Item -->
-<div class="queue-item approved a-up a-up-4">
-  <div class="queue-accent qa-teal"></div>
-  <div class="queue-body">
-    <div class="row align-items-center g-3">
-      <div class="col-lg-8">
-        <div class="queue-meta">
-          <span class="badge-mm badge-teal">
-            <i class="ph ph-check-circle" style="font-size:11px;"></i> Signed Off
-          </span>
-          <span class="queue-meta-sep">·</span>
-          <span style="font-size:12.5px;color:var(--ink-3);">Assessment: <a href="#">asm-12a9b34c</a></span>
-          <span class="queue-meta-sep">·</span>
-          <span class="badge-mm badge-blue">Wave 1</span>
-        </div>
+{% endblock %}
 
-        <p class="queue-title" style="color:var(--teal-d);">GDPR Region Exception</p>
-        <p class="queue-desc" style="margin-bottom:0;">
-          Approved moving <code>Customer-Redis</code> to <code>East US</code> for staging purposes.
-          <span style="font-family:var(--f-m);font-size:11.5px;color:var(--ink-4);display:block;margin-top:4px;">
-            <i class="ph ph-user-circle" style="font-size:13px;vertical-align:middle;"></i>
-            Authorized by Jhon Anderson &nbsp;·&nbsp; Oct 24, 2025, 9:14 AM
-          </span>
-        </p>
-      </div>
-      <div class="col-lg-4 text-lg-end">
-        <a href="#" class="btn-mm btn-ghost" style="font-size:12.5px;">
-          <i class="ph ph-clipboard-text"></i>
-          View Audit Log
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
+{% block extra_scripts %}
+<script>
+function getCookie(n) {
+  let v = null;
+  document.cookie && document.cookie.split(';').forEach(c => {
+    c = c.trim();
+    if (c.startsWith(n + '=')) v = decodeURIComponent(c.slice(n.length + 1));
+  });
+  return v;
+}
 
+function showToast(msg, type='success') {
+  const icon = type === 'success' ? 'ph-check-circle' : 'ph-warning-circle';
+  const el = document.createElement('div');
+  el.className = `gov-toast ${type}`;
+  el.innerHTML = `<i class="ph ${icon}" style="font-size:18px;flex-shrink:0;"></i><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+
+document.querySelectorAll('.btn-gov-action').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const assessmentId = this.dataset.assessment;
+    const action = this.dataset.action;
+    const riskId = this.dataset.risk;
+
+    if (action === 'audit') {
+      showToast('Opening audit log for this assessment…', 'success');
+      setTimeout(() => window.location.href = `/playbook/${assessmentId}/#tab-agents`, 800);
+      return;
+    }
+
+    // Disable all buttons in this card while processing
+    const card = this.closest('.queue-item');
+    card.querySelectorAll('button').forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+    this.innerHTML = `<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite;font-size:16px;"></i> Processing...`;
+    this.style.opacity = '1';
+
+    try {
+      const res = await fetch(`/api/assessments/${assessmentId}/governance/signoff/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ action: action, signed_by: 'System Administrator' })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        if (action === 'approve') {
+          showToast('Wave approved and signed off. ✓', 'success');
+          card.classList.remove('pending');
+          card.classList.add('approved');
+          card.style.opacity = '0';
+          card.style.transition = 'opacity 0.5s, transform 0.5s';
+          card.style.transform = 'translateX(20px)';
+          setTimeout(() => card.remove(), 500);
+        } else if (action === 'reject') {
+          showToast('Plan rejected. Agent pipeline is regenerating…', 'success');
+          card.style.opacity = '0';
+          card.style.transition = 'opacity 0.5s';
+          setTimeout(() => card.remove(), 500);
+          // Poll for new playbook
+          const iv = setInterval(async () => {
+            const st = await fetch(`/api/assessments/${assessmentId}/status/`);
+            const sd = await st.json();
+            if (sd.status === 'playbook_ready') {
+              clearInterval(iv);
+              showToast('New playbook generated! Redirecting…', 'success');
+              setTimeout(() => window.location.href = `/playbook/${assessmentId}/`, 1200);
+            }
+          }, 3000);
+        }
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (e) {
+      showToast(`Error: ${e.message}`, 'error');
+      card.querySelectorAll('button').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+    }
+  });
+});
+</script>
 {% endblock %}

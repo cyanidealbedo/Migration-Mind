@@ -4,13 +4,8 @@
 {% block nav_home %}active{% endblock %}
 
 {% block extra_styles %}
-/* ── HERO SECTION ── */
-.upload-hero {
-  text-align: center;
-  max-width: 580px;
-  margin: 0 auto 2.5rem;
-}
-
+/* ── HERO ── */
+.upload-hero { text-align: center; max-width: 580px; margin: 0 auto 2.5rem; }
 .hero-pill {
   display: inline-flex; align-items: center; gap: 7px;
   background: var(--teal-pale); border: 1.5px solid var(--teal-mid);
@@ -18,161 +13,90 @@
   font-family: var(--f-m); font-size: 11px; color: var(--teal-d);
   margin-bottom: 1.25rem;
 }
-
 .hero-pill i { font-size: 14px; }
 
 /* ── UPLOAD ZONE ── */
 .upload-zone {
-  border: 2px dashed var(--border-d);
-  border-radius: var(--r-xl);
-  padding: 3rem 2rem;
-  text-align: center;
-  background: var(--s1);
-  cursor: pointer;
-  transition: all 0.22s var(--ease);
-  position: relative; overflow: hidden;
+  border: 2px dashed var(--border-d); border-radius: var(--r-xl);
+  padding: 3rem 2rem; text-align: center; background: var(--s1);
+  cursor: pointer; transition: all 0.22s var(--ease); position: relative; overflow: hidden;
 }
-
 .upload-zone::before {
-  content: '';
-  position: absolute; inset: 0;
+  content: ''; position: absolute; inset: 0;
   background: radial-gradient(ellipse at 50% 0%, rgba(0,194,120,0.08) 0%, transparent 60%);
-  pointer-events: none;
-  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none; opacity: 0; transition: opacity 0.3s;
 }
-
 .upload-zone:hover, .upload-zone.drag-over {
-  border-color: var(--teal);
-  background: var(--teal-pale);
+  border-color: var(--teal); background: var(--teal-pale);
   box-shadow: 0 0 0 4px rgba(0,194,120,0.1);
 }
 .upload-zone:hover::before, .upload-zone.drag-over::before { opacity: 1; }
-
 .upload-icon-wrap {
   width: 72px; height: 72px; border-radius: 50%;
-  background: var(--white);
-  border: 2px solid var(--border);
+  background: var(--white); border: 2px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 1.25rem;
-  transition: all 0.3s var(--spring);
-  box-shadow: var(--sh-sm);
+  margin: 0 auto 1.25rem; transition: all 0.3s var(--spring); box-shadow: var(--sh-sm);
 }
-
-.upload-zone:hover .upload-icon-wrap {
-  border-color: var(--teal);
-  background: var(--teal-pale);
-  box-shadow: var(--sh-teal);
-  transform: scale(1.08);
-}
-
+.upload-zone:hover .upload-icon-wrap { border-color: var(--teal); background: var(--teal-pale); box-shadow: var(--sh-teal); transform: scale(1.08); }
 .upload-zone:hover .upload-icon-wrap i { color: var(--teal); }
 .upload-icon-wrap i { font-size: 32px; color: var(--ink-4); transition: color 0.2s; }
 
-/* ── DEMO BUTTON ── */
+/* ── DEMO STRIP ── */
 .demo-strip {
   background: linear-gradient(135deg, var(--teal) 0%, var(--blue) 60%, var(--violet) 100%);
-  border-radius: var(--r-lg);
-  padding: 1.5rem;
-  position: relative; overflow: hidden;
-  margin-top: 1.75rem;
+  border-radius: var(--r-lg); padding: 1.5rem; position: relative; overflow: hidden; margin-top: 1.75rem;
 }
-
 .demo-strip::before {
-  content: '';
-  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
   background: repeating-linear-gradient(45deg, rgba(255,255,255,0) 0, rgba(255,255,255,0) 10px, rgba(255,255,255,0.04) 10px, rgba(255,255,255,0.04) 20px);
   pointer-events: none;
 }
-
-.demo-strip-label {
-  font-family: var(--f-m); font-size: 10.5px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 10px;
-}
-
+.demo-strip-label { font-family: var(--f-m); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 10px; }
 .btn-demo {
   display: inline-flex; align-items: center; gap: 10px;
-  background: rgba(255,255,255,0.15);
-  border: 1.5px solid rgba(255,255,255,0.3);
-  backdrop-filter: blur(8px);
-  color: white; border-radius: var(--r-md);
-  padding: 12px 24px; font-size: 15px; font-weight: 700;
-  font-family: var(--f-d);
-  cursor: pointer; width: 100%; justify-content: center;
-  transition: all 0.2s var(--ease);
-  letter-spacing: -0.3px;
+  background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
+  backdrop-filter: blur(8px); color: white; border-radius: var(--r-md);
+  padding: 12px 24px; font-size: 15px; font-weight: 700; font-family: var(--f-d);
+  cursor: pointer; width: 100%; justify-content: center; transition: all 0.2s var(--ease); letter-spacing: -0.3px;
 }
-.btn-demo:hover {
-  background: rgba(255,255,255,0.25);
-  border-color: rgba(255,255,255,0.6);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-}
+.btn-demo:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.btn-demo:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .btn-demo i { font-size: 22px; }
 
 /* ── FEATURE GRID ── */
-.feature-grid {
-  display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
-  margin-top: 2rem;
-}
-
+.feature-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 2rem; }
 @media (max-width: 900px) { .feature-grid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 520px) { .feature-grid { grid-template-columns: 1fr; } }
-
 .feature-cell {
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 1.25rem;
-  transition: all 0.22s var(--spring);
-  cursor: default;
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.25rem;
+  transition: all 0.22s var(--spring); cursor: default;
 }
-.feature-cell:hover {
-  border-color: var(--border-d); box-shadow: var(--sh-md);
-  transform: translateY(-3px);
-}
-
-.feature-icon {
-  width: 36px; height: 36px; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 10px; font-size: 20px;
-}
-
-.fc-teal   { background: var(--teal-pale); color: var(--teal-d); }
-.fc-blue   { background: var(--blue-pale); color: var(--blue-d); }
-.fc-amber  { background: var(--amber-pale); color: var(--amber-d); }
-.fc-violet { background: var(--violet-pale); color: var(--violet); }
-
+.feature-cell:hover { border-color: var(--border-d); box-shadow: var(--sh-md); transform: translateY(-3px); }
+.feature-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 20px; transition: transform 0.2s var(--spring); }
 .feature-cell:hover .feature-icon { transform: scale(1.1); }
-.feature-icon { transition: transform 0.2s var(--spring); }
-
-.feature-name {
-  font-family: var(--f-d); font-size: 13px; font-weight: 700;
-  color: var(--ink); margin-bottom: 3px;
-}
+.fc-teal   { background: var(--teal-pale);   color: var(--teal-d); }
+.fc-blue   { background: var(--blue-pale);   color: var(--blue-d); }
+.fc-amber  { background: var(--amber-pale);  color: var(--amber-d); }
+.fc-violet { background: var(--violet-pale); color: var(--violet); }
+.feature-name { font-family: var(--f-d); font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
 .feature-desc { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
 
-/* ── AGENT PIPELINE (progress) ── */
+/* ── PIPELINE ── */
 .pipeline-wrap { display: flex; flex-direction: column; gap: 0; }
-
 .pipe-step {
-  display: flex; align-items: flex-start; gap: 14px;
-  padding: 1.1rem 1.5rem;
-  border-radius: var(--r-md);
-  transition: background 0.2s, opacity 0.3s;
+  display: flex; align-items: flex-start; gap: 14px; padding: 1.1rem 1.5rem;
+  border-radius: var(--r-md); transition: background 0.2s, opacity 0.3s;
   position: relative; opacity: 0.35;
 }
 .pipe-step::after {
-  content: ''; position: absolute;
-  left: calc(1.5rem + 13px); top: calc(1.1rem + 27px);
-  width: 1px; height: 100%;
-  background: var(--border);
+  content: ''; position: absolute; left: calc(1.5rem + 13px); top: calc(1.1rem + 27px);
+  width: 1px; height: 100%; background: var(--border);
 }
 .pipe-step:last-child::after { display: none; }
-
 .pipe-step.active { opacity: 1; background: var(--teal-pale); border: 1.5px solid var(--teal-mid); }
 .pipe-step.done   { opacity: 0.75; }
 .pipe-step.done::after { background: var(--teal); opacity: 0.4; }
-
 .pipe-dot {
   width: 27px; height: 27px; border-radius: 50%; flex-shrink: 0;
   border: 2px solid var(--border-d); background: var(--white);
@@ -180,43 +104,37 @@
   font-family: var(--f-m); font-size: 11px; color: var(--ink-4);
   position: relative; z-index: 1; transition: all 0.25s var(--spring);
 }
-.pipe-step.active .pipe-dot {
-  border-color: var(--teal); background: var(--teal); color: white;
-  box-shadow: 0 0 0 5px var(--teal-pale), 0 0 0 6px var(--teal-mid);
-}
-.pipe-step.done .pipe-dot {
-  border-color: var(--teal-d); background: var(--teal-d); color: white;
-}
-
-.pipe-spin {
-  width: 13px; height: 13px;
-  border: 2px solid rgba(255,255,255,0.35); border-top-color: white;
-  border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
-}
-.pipe-step.active .pipe-num { display: none; }
+.pipe-step.active .pipe-dot { border-color: var(--teal); background: var(--teal); color: white; box-shadow: 0 0 0 5px var(--teal-pale), 0 0 0 6px var(--teal-mid); }
+.pipe-step.done .pipe-dot   { border-color: var(--teal-d); background: var(--teal-d); color: white; }
+.pipe-spin { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.35); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+.pipe-step.active .pipe-num  { display: none; }
 .pipe-step.active .pipe-spin { display: block; }
-.pipe-step.done .pipe-num { display: none; }
-
-.pipe-body h5 {
-  font-family: var(--f-d); font-size: 14px; font-weight: 700;
-  color: var(--ink-2); margin-bottom: 2px;
-}
+.pipe-step.done .pipe-num    { display: none; }
+.pipe-body h5 { font-family: var(--f-d); font-size: 14px; font-weight: 700; color: var(--ink-2); margin-bottom: 2px; }
 .pipe-step.active h5 { color: var(--teal-d); }
-.pipe-step.done   h5 { color: var(--ink-3); }
+.pipe-step.done h5   { color: var(--ink-3); }
 .pipe-body p { font-size: 12.5px; color: var(--ink-3); margin: 0; }
-
-/* Progress bar */
 .prog-track { height: 4px; background: var(--s2); border-radius: 99px; overflow: hidden; margin-top: 1.5rem; }
-.prog-fill  {
-  height: 100%;
-  background: linear-gradient(90deg, var(--teal), var(--blue));
-  border-radius: 99px; transition: width 0.6s var(--ease);
+.prog-fill  { height: 100%; background: linear-gradient(90deg, var(--teal), var(--blue)); border-radius: 99px; transition: width 0.6s var(--ease); }
+
+/* ── CANCEL / REDIRECTING STATES ── */
+.cancel-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  margin-top: 1.25rem; background: transparent; border: 1.5px solid var(--border-d);
+  border-radius: var(--r-md); padding: 9px 20px; font-size: 13px;
+  font-family: var(--f-b); color: var(--ink-3); cursor: pointer; width: 100%;
+  transition: all 0.18s;
 }
+.cancel-btn:hover { border-color: var(--coral-mid); color: var(--coral-d); background: var(--coral-pale); }
+.redirect-state {
+  display: none; text-align: center; padding: 1.5rem 0 0.5rem;
+  animation: fadeUp 0.4s var(--ease) both;
+}
+.redirect-state i { font-size: 44px; color: var(--teal-d); display: block; margin-bottom: 10px; animation: spin 1s linear infinite; }
 {% endblock %}
 
 {% block content %}
 
-<!-- Hero -->
 <div class="upload-hero a-up" style="max-width: 720px;">
   <div class="hero-pill">
     <i class="ph ph-lightning"></i>
@@ -234,8 +152,6 @@
 <div style="max-width: 860px; margin: 0 auto;" id="upload-card">
   <div class="card-mm a-up a-up-1" style="overflow: hidden;">
     <div style="padding: 2rem 2rem 0;">
-
-      <!-- Drop zone -->
       <div class="upload-zone" id="drop-zone">
         <div class="upload-icon-wrap">
           <i class="ph ph-cloud-arrow-up"></i>
@@ -250,21 +166,15 @@
           <i class="ph ph-folder-open"></i> Browse Files
         </button>
       </div>
-
-      <!-- Demo strip -->
       <div class="demo-strip">
         <p class="demo-strip-label">
-          <i class="ph ph-info" style="font-size:12px;"></i>
-          &nbsp; Hackathon Judges / Demo Viewers
+          <i class="ph ph-info" style="font-size:12px;"></i> &nbsp; Hackathon Judges / Demo Viewers
         </p>
         <button id="btn-load-demo" class="btn-demo">
-          <i class="ph ph-play-circle"></i>
-          Load Synthetic Demo Data
+          <i class="ph ph-play-circle"></i> Load Synthetic Demo Data
         </button>
       </div>
     </div>
-
-    <!-- Feature grid -->
     <div style="padding: 1.75rem 2rem 2rem;">
       <p class="eyebrow" style="margin-bottom: 12px;">What the agents do</p>
       <div class="feature-grid">
@@ -293,77 +203,63 @@
   </div>
 </div>
 
-<!-- Progress Card (hidden) -->
+<!-- Progress Card -->
 <div style="max-width: 720px; margin: 0 auto;" id="progress-card" class="d-none">
   <div class="card-mm a-up" style="padding: 2rem;">
-    <div style="text-align: center; margin-bottom: 2rem;">
-      <div style="width:52px;height:52px;border-radius:50%;background:var(--teal-pale);border:2px solid var(--teal-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-        <i class="ph ph-cpu" style="font-size:26px;color:var(--teal-d);animation:spin 3s linear infinite;"></i>
-      </div>
-      <h3 style="font-family:var(--f-d);font-size:20px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">
-        Agents are on it
-      </h3>
-      <p style="font-size:13px;color:var(--ink-3);max-width:340px;margin:0 auto;">
-        Analyzing dependencies, fetching live Azure pricing, and evaluating compliance rules. Stay put.
-      </p>
+
+    <!-- Redirecting overlay (shown when done) -->
+    <div class="redirect-state" id="redirect-state">
+      <i class="ph ph-arrows-clockwise"></i>
+      <p style="font-family:var(--f-d);font-size:18px;font-weight:800;margin-bottom:4px;color:var(--teal-d);">Playbook ready!</p>
+      <p style="font-size:13px;color:var(--ink-3);">Opening your living playbook...</p>
     </div>
 
-    <div class="pipeline-wrap">
-      <div class="pipe-step active" id="step-surveyor">
-        <div class="pipe-dot">
-          <span class="pipe-num">1</span>
-          <div class="pipe-spin"></div>
-          <i class="ph ph-check pipe-done-icon" style="display:none;font-size:13px;"></i>
+    <!-- Normal running state -->
+    <div id="pipeline-running">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--teal-pale);border:2px solid var(--teal-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+          <i class="ph ph-cpu" style="font-size:26px;color:var(--teal-d);animation:spin 3s linear infinite;"></i>
         </div>
-        <div class="pipe-body">
-          <h5>Surveyor Agent</h5>
-          <p>Normalizing assets and building dependency graph via Azure MCP...</p>
+        <h3 style="font-family:var(--f-d);font-size:20px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Agents are on it</h3>
+        <p style="font-size:13px;color:var(--ink-3);max-width:340px;margin:0 auto;">
+          Analyzing dependencies, fetching live Azure pricing, and evaluating compliance rules.
+        </p>
+      </div>
+
+      <div class="pipeline-wrap">
+        <div class="pipe-step active" id="step-surveyor">
+          <div class="pipe-dot"><span class="pipe-num">1</span><div class="pipe-spin"></div><i class="ph ph-check pipe-done-icon" style="display:none;font-size:13px;"></i></div>
+          <div class="pipe-body"><h5>Surveyor Agent</h5><p>Normalizing assets and building dependency graph via Azure MCP...</p></div>
+        </div>
+        <div class="pipe-step" id="step-architect">
+          <div class="pipe-dot"><span class="pipe-num">2</span><div class="pipe-spin"></div><i class="ph ph-check pipe-done-icon" style="display:none;font-size:13px;"></i></div>
+          <div class="pipe-body"><h5>Architect Agent</h5><p>Topological sort and wave sequencing with GPT-4o Structured Outputs...</p></div>
+        </div>
+        <div class="pipe-step" id="step-accountant">
+          <div class="pipe-dot"><span class="pipe-num">3</span><div class="pipe-spin"></div><i class="ph ph-check pipe-done-icon" style="display:none;font-size:13px;"></i></div>
+          <div class="pipe-body"><h5>Accountant Agent</h5><p>Querying Azure Retail Prices API for live NPV business case...</p></div>
+        </div>
+        <div class="pipe-step" id="step-risk">
+          <div class="pipe-dot"><span class="pipe-num">4</span><div class="pipe-spin"></div><i class="ph ph-check pipe-done-icon" style="display:none;font-size:13px;"></i></div>
+          <div class="pipe-body"><h5>Risk Officer Agent</h5><p>Evaluating GDPR · SOX · HIPAA deterministic compliance rules...</p></div>
         </div>
       </div>
-      <div class="pipe-step" id="step-architect">
-        <div class="pipe-dot">
-          <span class="pipe-num">2</span>
-          <div class="pipe-spin"></div>
-          <i class="ph ph-check pipe-done-icon" style="display:none;font-size:13px;"></i>
+
+      <div style="margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1.5px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
+          <span style="font-family:var(--f-m);font-size:11px;color:var(--ink-4);">Pipeline progress</span>
+          <span id="prog-pct" style="font-family:var(--f-m);font-size:11px;color:var(--teal-d);font-weight:700;">25%</span>
         </div>
-        <div class="pipe-body">
-          <h5>Architect Agent</h5>
-          <p>Topological sort and wave sequencing with GPT-4o Structured Outputs...</p>
-        </div>
+        <div class="prog-track"><div class="prog-fill" id="main-progress-bar" style="width:25%;"></div></div>
       </div>
-      <div class="pipe-step" id="step-accountant">
-        <div class="pipe-dot">
-          <span class="pipe-num">3</span>
-          <div class="pipe-spin"></div>
-          <i class="ph ph-check pipe-done-icon" style="display:none;font-size:13px;"></i>
-        </div>
-        <div class="pipe-body">
-          <h5>Accountant Agent</h5>
-          <p>Querying Azure Retail Prices API for live NPV business case...</p>
-        </div>
-      </div>
-      <div class="pipe-step" id="step-risk">
-        <div class="pipe-dot">
-          <span class="pipe-num">4</span>
-          <div class="pipe-spin"></div>
-          <i class="ph ph-check pipe-done-icon" style="display:none;font-size:13px;"></i>
-        </div>
-        <div class="pipe-body">
-          <h5>Risk Officer Agent</h5>
-          <p>Evaluating GDPR · SOX · HIPAA deterministic compliance rules...</p>
-        </div>
-      </div>
+
+      <!-- Cancel button -->
+      <button class="cancel-btn" id="btn-cancel-pipeline">
+        <i class="ph ph-x-circle" style="font-size:16px;"></i>
+        Cancel pipeline &amp; return to upload
+      </button>
     </div>
 
-    <div style="margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1.5px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
-        <span style="font-family:var(--f-m);font-size:11px;color:var(--ink-4);">Pipeline progress</span>
-        <span id="prog-pct" style="font-family:var(--f-m);font-size:11px;color:var(--teal-d);font-weight:700;">25%</span>
-      </div>
-      <div class="prog-track">
-        <div class="prog-fill" id="main-progress-bar" style="width:25%;"></div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -373,16 +269,19 @@
 <script>
 function getCookie(name) {
   let v = null;
-  if (document.cookie) {
-    document.cookie.split(';').forEach(c => {
-      c = c.trim();
-      if (c.startsWith(name+'=')) v = decodeURIComponent(c.slice(name.length+1));
-    });
-  }
+  if (document.cookie) document.cookie.split(';').forEach(c => {
+    c = c.trim(); if (c.startsWith(name+'=')) v = decodeURIComponent(c.slice(name.length+1));
+  });
   return v;
 }
 
+let _pollIv = null;
+let _simIv  = null;
+let _currentAssessmentId = null;
+
 document.getElementById('btn-load-demo').addEventListener('click', function() {
+  this.disabled = true;
+  this.innerHTML = '<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite;font-size:20px;"></i> Starting...';
   document.getElementById('upload-card').classList.add('d-none');
   document.getElementById('progress-card').classList.remove('d-none');
 
@@ -393,21 +292,97 @@ document.getElementById('btn-load-demo').addEventListener('click', function() {
   })
   .then(r => r.json())
   .then(data => {
-    pollAssessmentStatus(data.assessment_id);
-    simulateUI();
+    _currentAssessmentId = data.assessment_id;
+    _pollIv = pollAssessmentStatus(data.assessment_id);
+    _simIv  = simulateUI();
   })
-  .catch(err => console.error(err));
+  .catch(err => {
+    console.error(err);
+    resetToUpload();
+  });
 });
 
+// Cancel button
+document.getElementById('btn-cancel-pipeline').addEventListener('click', function() {
+  if (_pollIv) clearInterval(_pollIv);
+  if (_simIv)  clearInterval(_simIv);
+  if (_currentAssessmentId) {
+    // Mark as failed in the background so it doesn't hang as "processing"
+    fetch(`/api/assessments/${_currentAssessmentId}/cancel/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
+    }).catch(() => {});
+  }
+  resetToUpload();
+});
+
+function resetToUpload() {
+  document.getElementById('progress-card').classList.add('d-none');
+  document.getElementById('upload-card').classList.remove('d-none');
+  const btn = document.getElementById('btn-load-demo');
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ph ph-play-circle"></i> Load Synthetic Demo Data';
+  // Reset pipeline steps
+  ['surveyor','architect','accountant','risk'].forEach((s, i) => {
+    const el = document.getElementById('step-' + s);
+    el.classList.remove('active','done');
+    if (i === 0) el.classList.add('active');
+    el.querySelector('.pipe-spin').style.display = 'none';
+    el.querySelector('.pipe-done-icon').style.display = 'none';
+    el.querySelector('.pipe-num').style.display = 'block';
+  });
+  document.getElementById('main-progress-bar').style.width = '25%';
+  document.getElementById('prog-pct').textContent = '25%';
+}
+
 function pollAssessmentStatus(id) {
-  const iv = setInterval(() => {
+  return setInterval(() => {
     fetch(`/api/assessments/${id}/status/`)
     .then(r => r.json())
     .then(d => {
-      if (d.status === 'playbook_ready') { clearInterval(iv); window.location.href = `/playbook/${id}/`; }
-      else if (d.status === 'failed') { clearInterval(iv); alert('Agent pipeline failed. Check logs.'); }
-    });
+      if (d.status === 'playbook_ready') {
+        if (_pollIv) clearInterval(_pollIv);
+        if (_simIv)  clearInterval(_simIv);
+        // Complete all steps visually
+        completeAllSteps();
+        // Show redirecting state
+        document.getElementById('pipeline-running').style.opacity = '0';
+        document.getElementById('pipeline-running').style.transition = 'opacity 0.4s';
+        setTimeout(() => {
+          document.getElementById('pipeline-running').style.display = 'none';
+          document.getElementById('redirect-state').style.display = 'block';
+          // Redirect after brief pause
+          setTimeout(() => { window.location.href = `/playbook/${id}/`; }, 1400);
+        }, 400);
+      } else if (d.status === 'failed') {
+        if (_pollIv) clearInterval(_pollIv);
+        if (_simIv)  clearInterval(_simIv);
+        showErrorState();
+      }
+    })
+    .catch(console.error);
   }, 3000);
+}
+
+function completeAllSteps() {
+  ['surveyor','architect','accountant','risk'].forEach(s => {
+    const el = document.getElementById('step-' + s);
+    el.classList.remove('active'); el.classList.add('done');
+    el.querySelector('.pipe-spin').style.display = 'none';
+    el.querySelector('.pipe-done-icon').style.display = 'block';
+  });
+  document.getElementById('main-progress-bar').style.width = '100%';
+  document.getElementById('prog-pct').textContent = '100%';
+}
+
+function showErrorState() {
+  const running = document.getElementById('pipeline-running');
+  running.querySelector('h3').textContent = 'Pipeline failed';
+  running.querySelector('h3').style.color = 'var(--coral-d)';
+  running.querySelector('p').textContent = 'Check Azure Functions logs for details.';
+  document.getElementById('btn-cancel-pipeline').innerHTML = '<i class="ph ph-arrow-left" style="font-size:16px;"></i> Return to upload';
+  document.getElementById('btn-cancel-pipeline').style.borderColor = 'var(--coral-mid)';
+  document.getElementById('btn-cancel-pipeline').style.color = 'var(--coral-d)';
 }
 
 function simulateUI() {
@@ -415,25 +390,21 @@ function simulateUI() {
   const bar = document.getElementById('main-progress-bar');
   const pct = document.getElementById('prog-pct');
   let cur = 0;
-
-  const iv = setInterval(() => {
+  return setInterval(() => {
     if (cur > 0) {
       const prev = document.getElementById('step-' + steps[cur-1]);
       prev.classList.remove('active'); prev.classList.add('done');
-      const dot = prev.querySelector('.pipe-dot');
-      dot.querySelector('.pipe-spin').style.display = 'none';
-      dot.querySelector('.pipe-done-icon').style.display = 'block';
+      prev.querySelector('.pipe-spin').style.display = 'none';
+      prev.querySelector('.pipe-done-icon').style.display = 'block';
     }
     if (cur < steps.length) {
       document.getElementById('step-' + steps[cur]).classList.add('active');
       const p = ((cur+1)*25) + '%';
-      bar.style.width = p; pct.textContent = p;
-      cur++;
-    } else clearInterval(iv);
+      bar.style.width = p; pct.textContent = p; cur++;
+    } else clearInterval(_simIv);
   }, 2200);
 }
 
-// Drag & drop visual feedback
 const dz = document.getElementById('drop-zone');
 if (dz) {
   ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag-over'); }));
