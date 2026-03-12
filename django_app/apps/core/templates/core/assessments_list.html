@@ -1,81 +1,331 @@
-<!-- django_app/apps/core/templates/core/assessments_list.html -->
 {% extends 'base.html' %}
 {% load static %}
 
+{% block nav_assess %}active{% endblock %}
+
+{% block extra_styles %}
+.mini-spin { width: 10px; height: 10px; border: 1.5px solid var(--amber-mid); border-top-color: var(--amber-d); border-radius: 50%; animation: spin 0.9s linear infinite; display: inline-block; }
+.id-chip { font-family: var(--f-m); font-size: 12px; color: var(--blue-d); background: var(--blue-pale); border: 1px solid var(--blue-mid); border-radius: var(--r-sm); padding: 3px 8px; display: inline-block; transition: all 0.15s; }
+.tbl-mm tbody tr:hover .id-chip { background: var(--blue-mid); }
+.stat-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 2rem; }
+.stat-cell { background: var(--white); padding: 1.25rem 1.5rem; transition: background 0.15s; }
+.stat-cell:hover { background: var(--teal-pale); }
+.stat-val { font-family: var(--f-d); font-size: 26px; font-weight: 800; letter-spacing: -1px; }
+.stat-lbl { font-family: var(--f-m); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-4); margin-top: 3px; }
+.empty-cell { text-align: center; padding: 4rem 2rem; }
+.empty-icon { width: 60px; height: 60px; border-radius: var(--r-lg); background: var(--s1); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 28px; color: var(--ink-4); transition: all 0.22s var(--spring); }
+.empty-icon:hover { transform: scale(1.08); border-color: var(--teal); color: var(--teal); }
+
+/* Row actions — always visible as icon buttons */
+.row-actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.icon-btn {
+  width: 32px; height: 32px; border-radius: var(--r-sm); border: 1.5px solid var(--border);
+  background: transparent; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--ink-4); cursor: pointer; transition: all 0.16s; flex-shrink: 0;
+}
+.icon-btn:hover { background: var(--blue-pale); border-color: var(--blue-mid); color: var(--blue-d); }
+.icon-btn.del:hover   { background: var(--coral-pale); border-color: var(--coral-mid); color: var(--coral-d); }
+.icon-btn.rename:hover { background: var(--amber-pale); border-color: var(--amber-mid); color: var(--amber-d); }
+.icon-btn.cancel:hover { background: var(--coral-pale); border-color: var(--coral-mid); color: var(--coral-d); }
+.icon-btn[title]:hover::after {
+  content: attr(title); position: absolute; bottom: calc(100% + 6px); right: 0;
+  background: var(--ink); color: white; font-size: 11px; padding: 3px 8px;
+  border-radius: 5px; white-space: nowrap; font-family: var(--f-m); pointer-events: none; z-index: 99;
+}
+.icon-btn { position: relative; }
+
+/* Modal */
+.mm-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(3px); z-index: 1050; display: none;
+  align-items: center; justify-content: center;
+}
+.mm-modal-backdrop.open { display: flex; animation: fadeUp 0.2s var(--ease) both; }
+.mm-modal {
+  background: var(--white); border-radius: var(--r-xl);
+  border: 1.5px solid var(--border); box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+  width: min(480px, calc(100vw - 2rem)); padding: 2rem;
+  animation: fadeUp 0.25s var(--spring) both;
+}
+.mm-modal h3 { font-family: var(--f-d); font-size: 18px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.4px; }
+.mm-modal p  { font-size: 13.5px; color: var(--ink-2); line-height: 1.65; margin-bottom: 1.5rem; }
+.mm-input {
+  width: 100%; padding: 11px 14px; border: 1.5px solid var(--border-d); border-radius: var(--r-md);
+  font-family: var(--f-b); font-size: 14px; color: var(--ink); background: var(--s1);
+  transition: border-color 0.15s; outline: none; box-sizing: border-box;
+}
+.mm-input:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+{% endblock %}
+
 {% block content %}
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-4">
-    <div class="breadcrumb-title pe-3">Assessments</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="/"><i class="material-icons-outlined fs-5">home</i></a></li>
-                <li class="breadcrumb-item active" aria-current="page">All Assessments</li>
-            </ol>
-        </nav>
+
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4 a-up">
+  <div>
+    <div class="mm-bc">
+      <a href="/"><i class="ph ph-house" style="font-size:15px;"></i></a>
+      <span class="mm-bc-sep">›</span>
+      <span style="color:var(--ink-3);">Assessments</span>
     </div>
-    <div class="ms-auto">
-        <a href="/" class="btn btn-primary d-flex align-items-center gap-2 rounded-pill px-4">
-            <i class="material-icons-outlined">add</i> New Upload
-        </a>
-    </div>
+    <h1 class="page-title">Assessment History</h1>
+    <p class="page-sub">All uploaded Azure Migrate exports and agent-generated playbooks</p>
+  </div>
+  <a href="/" class="btn-mm btn-teal a-up a-up-1">
+    <i class="ph ph-plus-circle"></i> New Upload
+  </a>
 </div>
 
-<div class="card rounded-4 shadow-sm border-0">
-    <div class="card-header bg-white border-bottom p-4">
-        <h5 class="mb-0 fw-bold">Assessment History</h5>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table align-middle table-hover mb-0">
-                <thead class="bg-light">
-                <tr>
-                    <th class="py-3 px-4">Assessment ID</th>
-                    <th class="py-3">Name</th>
-                    <th class="py-3">Status</th>
-                    <th class="py-3">Date Created</th>
-                    <th class="py-3 text-end px-4">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for assessment in assessments %}
-                <tr>
-                    <td class="px-4 fw-bold font-monospace text-primary">{{ assessment.id }}</td>
-                    <td>{{ assessment.name }}</td>
-                    <td>
-                        {% if assessment.status == 'playbook_ready' %}
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2">Playbook Ready</span>
-                        {% elif assessment.status == 'processing' %}
-                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3 py-2">
-                                <span class="spinner-border spinner-border-sm me-1" role="status"></span> Agents Running
-                            </span>
-                        {% else %}
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3 py-2">{{ assessment.get_status_display }}</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ assessment.created_at|date:"M d, Y h:i A" }}</td>
-                    <td class="text-end px-4">
-                        {% if assessment.status == 'playbook_ready' %}
-                        <a href="{% url 'core:playbook_detail' assessment.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                            Open Playbook
-                        </a>
-                        {% else %}
-                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" disabled>
-                            Wait for Agents
-                        </button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-5 text-muted">
-                        <i class="material-icons-outlined fs-1 mb-3 opacity-50">inbox</i>
-                        <br>No assessments found. Upload one to get started!
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="stat-strip a-up a-up-2">
+  <div class="stat-cell">
+    <p class="stat-val" style="color:var(--ink);">{{ assessments|length }}</p>
+    <p class="stat-lbl">Total Assessments</p>
+  </div>
+  <div class="stat-cell">
+    <p class="stat-val" style="color:var(--teal-d);">{{ ready_count }}</p>
+    <p class="stat-lbl">Playbooks Ready</p>
+  </div>
+  <div class="stat-cell">
+    <p class="stat-val" style="color:var(--amber-d);">{{ processing_count }}</p>
+    <p class="stat-lbl">In Progress</p>
+  </div>
 </div>
+
+<div class="card-mm a-up a-up-3" style="overflow:hidden;">
+  <div style="padding:1.25rem 1.5rem;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:9px;">
+      <div style="width:28px;height:28px;border-radius:7px;background:var(--blue-pale);border:1.5px solid var(--blue-mid);display:flex;align-items:center;justify-content:center;">
+        <i class="ph ph-squares-four" style="font-size:16px;color:var(--blue-d);"></i>
+      </div>
+      <span style="font-family:var(--f-d);font-size:14px;font-weight:700;">All Assessments</span>
+    </div>
+    <span style="font-family:var(--f-m);font-size:11.5px;color:var(--ink-4);">{{ assessments|length }} records</span>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table class="tbl-mm">
+      <thead>
+        <tr>
+          <th>Assessment ID</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th style="text-align:right;padding-right:1.5rem;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for assessment in assessments %}
+        <tr id="row-{{ assessment.id }}">
+          <td><span class="id-chip">{{ assessment.id }}</span></td>
+          <td>
+            <span class="assessment-name" id="name-{{ assessment.id }}" style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ assessment.name }}</span>
+          </td>
+          <td>
+            {% if assessment.status == 'playbook_ready' %}
+              <span class="badge-mm badge-teal"><i class="ph ph-check-circle" style="font-size:12px;"></i> Playbook Ready</span>
+            {% elif assessment.status == 'processing' %}
+              <span class="badge-mm badge-amber"><span class="mini-spin"></span> Agents Running</span>
+            {% elif assessment.status == 'failed' %}
+              <span class="badge-mm badge-coral"><i class="ph ph-warning-circle" style="font-size:12px;"></i> Failed</span>
+            {% else %}
+              <span class="badge-mm badge-gray">{{ assessment.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span style="font-family:var(--f-m);font-size:12px;color:var(--ink-2);">{{ assessment.created_at|date:"M d, Y" }}</span><br>
+            <span style="font-family:var(--f-m);font-size:11px;color:var(--ink-4);">{{ assessment.created_at|date:"h:i A" }}</span>
+          </td>
+          <td style="padding-right:1.5rem;">
+            <div class="row-actions">
+              {% if assessment.status == 'playbook_ready' %}
+              <a href="{% url 'core:playbook_detail' assessment.id %}" class="icon-btn" title="Open Playbook">
+                <i class="ph ph-arrow-square-out"></i>
+              </a>
+              {% endif %}
+              {% if assessment.status == 'processing' %}
+              <button class="icon-btn cancel btn-cancel-assessment"
+                data-id="{{ assessment.id }}" title="Cancel pipeline">
+                <i class="ph ph-stop-circle"></i>
+              </button>
+              {% endif %}
+              <button class="icon-btn rename btn-rename-assessment"
+                data-id="{{ assessment.id }}"
+                data-name="{{ assessment.name }}"
+                title="Rename">
+                <i class="ph ph-pencil-simple"></i>
+              </button>
+              <button class="icon-btn del btn-delete-assessment"
+                data-id="{{ assessment.id }}"
+                data-name="{{ assessment.name }}"
+                title="Delete">
+                <i class="ph ph-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5">
+            <div class="empty-cell">
+              <div class="empty-icon"><i class="ph ph-inbox"></i></div>
+              <p style="font-family:var(--f-d);font-size:16px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">No assessments yet</p>
+              <p style="font-size:13px;color:var(--ink-3);margin-bottom:1.25rem;max-width:320px;margin-inline:auto;">Upload an Azure Migrate export to kick off the agent pipeline and generate your first playbook.</p>
+              <a href="/" class="btn-mm btn-teal" style="display:inline-flex;"><i class="ph ph-upload-simple"></i> Upload Assessment</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── RENAME MODAL ── -->
+<div class="mm-modal-backdrop" id="rename-modal">
+  <div class="mm-modal">
+    <h3><i class="ph ph-pencil-simple" style="color:var(--amber-d);margin-right:6px;"></i> Rename Assessment</h3>
+    <p>Give this assessment a descriptive name to identify it in the list.</p>
+    <input type="text" class="mm-input" id="rename-input" placeholder="e.g. Production E-Commerce Stack" style="margin-bottom:1.25rem;" />
+    <div style="display:flex;gap:8px;">
+      <button class="btn-mm btn-amber flex-1" id="btn-rename-confirm"><i class="ph ph-check"></i> Rename</button>
+      <button class="btn-mm btn-ghost" id="btn-rename-cancel"><i class="ph ph-x"></i> Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE MODAL ── -->
+<div class="mm-modal-backdrop" id="delete-modal">
+  <div class="mm-modal">
+    <h3 style="color:var(--coral-d);"><i class="ph ph-trash" style="margin-right:6px;"></i> Delete Assessment</h3>
+    <p>Are you sure you want to permanently delete <strong id="delete-name-display"></strong>?
+    This will remove all playbook versions, risk cards, and agent run logs. This cannot be undone.</p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-mm btn-coral flex-1" id="btn-delete-confirm"><i class="ph ph-trash"></i> Yes, Delete</button>
+      <button class="btn-mm btn-ghost" id="btn-delete-cancel"><i class="ph ph-x"></i> Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CANCEL MODAL ── -->
+<div class="mm-modal-backdrop" id="cancel-modal">
+  <div class="mm-modal">
+    <h3 style="color:var(--amber-d);"><i class="ph ph-stop-circle" style="margin-right:6px;"></i> Cancel Pipeline</h3>
+    <p>Stop the running agent pipeline for this assessment? The assessment will be marked as failed and you can re-trigger it from the upload page.</p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-mm btn-amber flex-1" id="btn-cancel-confirm"><i class="ph ph-stop"></i> Yes, Cancel</button>
+      <button class="btn-mm btn-ghost" id="btn-cancel-modal-close"><i class="ph ph-x"></i> Keep Running</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function getCookie(n) {
+  let v=null; document.cookie&&document.cookie.split(';').forEach(c=>{c=c.trim();if(c.startsWith(n+'='))v=decodeURIComponent(c.slice(n.length+1));}); return v;
+}
+function showToast(msg, ok=true) {
+  const el = document.createElement('div');
+  el.style.cssText=`position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;padding:13px 20px;border-radius:16px;font-family:var(--f-m);font-size:13px;display:flex;align-items:center;gap:9px;box-shadow:0 8px 32px rgba(0,0,0,0.15);animation:fadeUp 0.3s var(--ease) both;${ok?'background:var(--teal-pale);border:1.5px solid var(--teal-mid);color:var(--teal-d);':'background:var(--coral-pale);border:1.5px solid var(--coral-mid);color:var(--coral-d);'}`;
+  el.innerHTML=`<i class="ph ${ok?'ph-check-circle':'ph-warning-circle'}" style="font-size:17px;flex-shrink:0;"></i><span>${msg}</span>`;
+  document.body.appendChild(el); setTimeout(()=>el.remove(),4000);
+}
+
+// ── RENAME ──────────────────────────────────────────────────────────────────
+let _renameId = null;
+document.querySelectorAll('.btn-rename-assessment').forEach(btn => {
+  btn.addEventListener('click', () => {
+    _renameId = btn.dataset.id;
+    document.getElementById('rename-input').value = btn.dataset.name;
+    document.getElementById('rename-modal').classList.add('open');
+    setTimeout(()=>document.getElementById('rename-input').focus(), 100);
+  });
+});
+document.getElementById('btn-rename-cancel').addEventListener('click', ()=>document.getElementById('rename-modal').classList.remove('open'));
+document.getElementById('rename-modal').addEventListener('click', e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+document.getElementById('rename-input').addEventListener('keydown', e=>{if(e.key==='Enter')document.getElementById('btn-rename-confirm').click();});
+
+document.getElementById('btn-rename-confirm').addEventListener('click', async ()=>{
+  const newName = document.getElementById('rename-input').value.trim();
+  if (!newName) { document.getElementById('rename-input').focus(); return; }
+  const btn = document.getElementById('btn-rename-confirm');
+  btn.innerHTML='<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite;font-size:15px;"></i> Saving...'; btn.disabled=true;
+  try {
+    const r = await fetch(`/api/assessments/${_renameId}/`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+      body: JSON.stringify({name: newName})
+    });
+    if (r.ok) {
+      document.getElementById('name-' + _renameId).textContent = newName;
+      document.querySelectorAll(`.btn-rename-assessment[data-id="${_renameId}"]`).forEach(b=>b.dataset.name=newName);
+      document.getElementById('rename-modal').classList.remove('open');
+      showToast('Assessment renamed.');
+    } else { throw new Error('Rename failed'); }
+  } catch(e) { showToast(e.message, false); }
+  btn.innerHTML='<i class="ph ph-check"></i> Rename'; btn.disabled=false;
+});
+
+// ── DELETE ──────────────────────────────────────────────────────────────────
+let _deleteId = null;
+document.querySelectorAll('.btn-delete-assessment').forEach(btn => {
+  btn.addEventListener('click', () => {
+    _deleteId = btn.dataset.id;
+    document.getElementById('delete-name-display').textContent = btn.dataset.name;
+    document.getElementById('delete-modal').classList.add('open');
+  });
+});
+document.getElementById('btn-delete-cancel').addEventListener('click', ()=>document.getElementById('delete-modal').classList.remove('open'));
+document.getElementById('delete-modal').addEventListener('click', e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+
+document.getElementById('btn-delete-confirm').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btn-delete-confirm');
+  btn.innerHTML='<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite;font-size:15px;"></i> Deleting...'; btn.disabled=true;
+  try {
+    const r = await fetch(`/api/assessments/${_deleteId}/`, {
+      method: 'DELETE',
+      headers: {'X-CSRFToken':getCookie('csrftoken')}
+    });
+    if (r.ok || r.status===204) {
+      document.getElementById('row-' + _deleteId).style.transition='opacity 0.4s,transform 0.4s';
+      document.getElementById('row-' + _deleteId).style.opacity='0';
+      document.getElementById('row-' + _deleteId).style.transform='translateX(20px)';
+      setTimeout(()=>document.getElementById('row-' + _deleteId).remove(), 400);
+      document.getElementById('delete-modal').classList.remove('open');
+      showToast('Assessment deleted.');
+    } else { throw new Error('Delete failed'); }
+  } catch(e) { showToast(e.message, false); }
+  btn.innerHTML='<i class="ph ph-trash"></i> Yes, Delete'; btn.disabled=false;
+});
+
+// ── CANCEL PROCESSING ────────────────────────────────────────────────────────
+let _cancelId = null;
+document.querySelectorAll('.btn-cancel-assessment').forEach(btn => {
+  btn.addEventListener('click', () => {
+    _cancelId = btn.dataset.id;
+    document.getElementById('cancel-modal').classList.add('open');
+  });
+});
+document.getElementById('btn-cancel-modal-close').addEventListener('click', ()=>document.getElementById('cancel-modal').classList.remove('open'));
+document.getElementById('cancel-modal').addEventListener('click', e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+
+document.getElementById('btn-cancel-confirm').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btn-cancel-confirm');
+  btn.innerHTML='<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite;font-size:15px;"></i> Cancelling...'; btn.disabled=true;
+  try {
+    const r = await fetch(`/api/assessments/${_cancelId}/cancel/`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}
+    });
+    if (r.ok) {
+      // Update badge in row
+      const row = document.getElementById('row-' + _cancelId);
+      row.querySelector('.badge-mm').outerHTML = '<span class="badge-mm badge-coral"><i class="ph ph-warning-circle" style="font-size:12px;"></i> Cancelled</span>';
+      row.querySelector('.btn-cancel-assessment')?.remove();
+      document.getElementById('cancel-modal').classList.remove('open');
+      showToast('Pipeline cancelled.');
+    } else { throw new Error('Cancel failed'); }
+  } catch(e) { showToast(e.message, false); }
+  btn.innerHTML='<i class="ph ph-stop"></i> Yes, Cancel'; btn.disabled=false;
+});
+</script>
 {% endblock %}

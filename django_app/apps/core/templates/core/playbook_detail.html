@@ -1,371 +1,1087 @@
-<!-- django_app/apps/core/templates/core/playbook_detail.html -->
 {% extends 'base.html' %}
 {% load static %}
 
+{% block nav_assess %}active{% endblock %}
+
 {% block extra_head %}
-<!-- vis-network for the dependency graph -->
-<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-<style>
-    .nav-tabs .nav-link { font-weight: 500; font-size: 1.1rem; padding: 1rem 1.5rem; color: #6c757d; }
-    .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; background: transparent; border-top: none; border-left: none; border-right: none;}
-    .risk-card { transition: transform 0.2s; }
-    .risk-card:hover { transform: translateY(-5px); }
-</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+{% endblock %}
+
+{% block extra_styles %}
+/* ── VERSION UPDATE BANNER ── */
+.update-banner {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: linear-gradient(135deg, #E6FBF3 0%, #EFF6FF 100%);
+  border: 1.5px solid var(--teal-mid);
+  border-radius: var(--r-xl); padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.4s var(--ease) both;
+}
+.update-banner-icon {
+  width: 38px; height: 38px; border-radius: 9px;
+  background: var(--teal-pale); border: 1.5px solid var(--teal-mid);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 20px; color: var(--teal-d);
+}
+.update-banner-close {
+  margin-left: auto; background: none; border: none;
+  color: var(--ink-4); cursor: pointer; font-size: 20px;
+  padding: 0; line-height: 1; transition: color 0.15s;
+}
+.update-banner-close:hover { color: var(--ink); }
+
+/* ── VERSION PILL ── */
+.version-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 13px; border-radius: 999px;
+  background: var(--teal-pale); border: 1.5px solid var(--teal-mid);
+  font-family: var(--f-m); font-size: 12px; color: var(--teal-d);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--teal);
+  animation: pulseLive 2s ease-in-out infinite;
+}
+@keyframes pulseLive {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,194,120,0.6); }
+  50%      { box-shadow: 0 0 0 5px rgba(0,194,120,0); }
+}
+
+/* ── COMPLIANCE SCORE ── */
+.compliance-bar-wrap {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1.5rem; padding: 1rem 1.25rem;
+  background: var(--s1); border-radius: var(--r-lg);
+  border: 1.5px solid var(--border);
+}
+.compliance-score-num {
+  font-family: var(--f-d); font-size: 28px; font-weight: 800;
+  letter-spacing: -1px; flex-shrink: 0;
+}
+.compliance-bar-track {
+  flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden;
+}
+.compliance-bar-fill {
+  height: 100%; border-radius: 99px;
+  transition: width 1s var(--ease);
+}
+.compliance-legend { display: flex; gap: 12px; flex-wrap: wrap; }
+.compliance-legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--f-m); font-size: 11px; color: var(--ink-3);
+}
+.cl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── TABS ── */
+.mm-tabs {
+  display: flex; gap: 0; border-bottom: 1.5px solid var(--border);
+  padding: 0 1.5rem; overflow-x: auto; scrollbar-width: none;
+}
+.mm-tabs::-webkit-scrollbar { display: none; }
+.mm-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 14px 18px; background: transparent; border: none;
+  border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
+  font-family: var(--f-b); font-size: 13.5px; font-weight: 500;
+  color: var(--ink-3); cursor: pointer; transition: all 0.18s var(--ease);
+  white-space: nowrap;
+}
+.mm-tab i { font-size: 18px; opacity: 0.6; transition: opacity 0.18s; }
+.mm-tab:hover { color: var(--ink); }
+.mm-tab.active { color: var(--teal-d); border-bottom-color: var(--teal); font-weight: 700; }
+.mm-tab.active i { opacity: 1; color: var(--teal-d); }
+.mm-pane { display: none; }
+.mm-pane.active { display: block; animation: fadeUp 0.25s var(--ease) both; }
+
+/* ── GRAPH ── */
+#dependency-network {
+  height: 560px; background: var(--cream);
+  border-radius: 0 0 var(--r-xl) 0;
+}
+.graph-sidebar {
+  padding: 1.5rem; background: var(--s1); border-left: 1.5px solid var(--border); min-height: 560px;
+}
+.legend-row {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 13px; color: var(--ink-2); padding: 7px 8px;
+  border-bottom: 1px solid var(--border); border-radius: var(--r-sm);
+  transition: background 0.15s;
+}
+.legend-row:last-child { border-bottom: none; }
+.legend-row:hover { background: var(--white); }
+.legend-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── WAVE CARDS ── */
+.wave-card {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xl); padding: 1.5rem;
+  transition: all 0.22s var(--spring); position: relative; overflow: hidden;
+}
+.wave-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--teal), var(--blue));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.3s var(--ease);
+}
+.wave-card:hover { border-color: var(--teal-mid); box-shadow: var(--sh-md); transform: translateY(-4px); }
+.wave-card:hover::before { transform: scaleX(1); }
+.wave-num {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px;
+  border-radius: 999px; font-family: var(--f-m); font-size: 11px;
+  background: var(--teal-pale); color: var(--teal-d); border: 1.5px solid var(--teal-mid);
+}
+.asset-list { list-style: none; padding: 0; margin: 0; }
+.asset-list li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 11px; border-radius: var(--r-sm);
+  font-family: var(--f-m); font-size: 12px; color: var(--ink-2);
+  border: 1px solid var(--border); margin-bottom: 5px; background: var(--s1);
+  transition: all 0.15s;
+}
+.asset-list li:hover { background: var(--teal-pale); border-color: var(--teal-mid); color: var(--teal-d); }
+.asset-list li i { font-size: 15px; color: var(--ink-4); }
+.asset-list li:hover i { color: var(--teal); }
+
+/* ── KPI CARDS ── */
+.kpi-card {
+  background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r-xl);
+  padding: 1.5rem; transition: all 0.22s var(--spring); cursor: default;
+}
+.kpi-card:hover { border-color: var(--border-d); box-shadow: var(--sh-md); transform: translateY(-3px); }
+.kpi-label { font-family: var(--f-m); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-4); margin-bottom: 8px; }
+.kpi-value { font-family: var(--f-d); font-size: 32px; font-weight: 800; letter-spacing: -1.5px; line-height: 1; }
+
+/* ── PRICING TABLE ── */
+.num-red  { font-family: var(--f-m); color: var(--coral-d); font-size: 13px; }
+.num-teal { font-family: var(--f-m); color: var(--teal-d);  font-size: 13px; font-weight: 700; }
+.num-blue { font-family: var(--f-m); color: var(--blue-d);  font-size: 13px; font-weight: 700; }
+
+/* ── RISK CARDS ── */
+.risk-card {
+  background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r-xl);
+  padding: 1.5rem; transition: all 0.22s var(--spring); height: 100%;
+}
+.risk-card:hover { box-shadow: var(--sh-md); transform: translateY(-4px); }
+.risk-card.blocking {
+  border-left: 4px solid var(--coral); border-color: var(--coral-mid);
+  background: linear-gradient(135deg, var(--coral-pale) 0%, var(--white) 45%);
+}
+.risk-card.blocking:hover { border-color: var(--coral); }
+.risk-card.warning  {
+  border-left: 4px solid var(--amber); border-color: var(--amber-mid);
+  background: linear-gradient(135deg, var(--amber-pale) 0%, var(--white) 45%);
+}
+.risk-card.warning:hover { border-color: var(--amber); }
+.risk-remedy {
+  background: var(--s1); border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: 12px; font-size: 13px; color: var(--ink-2); line-height: 1.65;
+}
+.remedy-label {
+  font-family: var(--f-m); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-4); margin-bottom: 6px;
+  display: flex; align-items: center; gap: 5px;
+}
+
+/* ── AGENT THOUGHT STREAM ── */
+.thought-stream {
+  background: var(--ink); border-radius: var(--r-xl); padding: 1.25rem 1.5rem;
+  font-family: var(--f-m); font-size: 12px; max-height: 340px;
+  overflow-y: auto; position: relative;
+}
+.thought-line {
+  display: flex; gap: 10px; padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05); line-height: 1.5;
+  animation: fadeUp 0.3s var(--ease) both;
+}
+.thought-line:last-child { border-bottom: none; }
+.thought-ts { color: rgba(255,255,255,0.3); flex-shrink: 0; }
+.thought-agent { flex-shrink: 0; font-weight: 700; min-width: 100px; }
+.thought-agent.surveyor  { color: #34d399; }
+.thought-agent.architect { color: #60a5fa; }
+.thought-agent.accountant{ color: #fbbf24; }
+.thought-agent.risk      { color: #f87171; }
+.thought-agent.system    { color: #c4b5fd; }
+.thought-msg { color: rgba(255,255,255,0.75); word-break: break-word; }
+.thought-status-ok   { color: #34d399; }
+.thought-status-fail { color: #f87171; }
+.thought-empty { color: rgba(255,255,255,0.3); text-align: center; padding: 2rem 0; }
+
+/* ── SECTION HEADER ── */
+.sec-hdr {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; padding-bottom: 1.25rem; margin-bottom: 1.5rem; border-bottom: 1.5px solid var(--border);
+}
+.sec-title { font-family: var(--f-d); font-size: 18px; font-weight: 800; letter-spacing: -0.4px; }
+.sec-sub   { font-size: 13px; color: var(--ink-3); margin-top: 3px; max-width: 560px; }
 {% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <div>
-        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-2">
-            <div class="breadcrumb-title pe-3">Playbook</div>
-            <div class="ps-3">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0 p-0">
-                        <li class="breadcrumb-item"><a href="/"><i class="material-icons-outlined fs-6">home</i></a></li>
-                        <li class="breadcrumb-item"><a href="/assessments/">Assessments</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{ assessment.id }}</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-        <h2 class="fw-bold mb-0">{{ assessment.name }}</h2>
-        <p class="text-muted mb-0 mt-1">Living Migration Playbook — Version 1.0 (Auto-updating)</p>
+
+<!-- ══ UPDATE BANNER (v2+) ══ -->
+{% if show_update_banner %}
+<div class="update-banner" id="update-banner">
+  <div class="update-banner-icon">
+    <i class="ph ph-arrows-clockwise"></i>
+  </div>
+  <div style="flex:1;">
+    <p style="font-family:var(--f-d);font-weight:800;font-size:14px;color:var(--teal-d);margin-bottom:3px;">
+      Playbook updated to v{{ version }}.0
+    </p>
+    <p style="font-size:13px;color:var(--ink-2);margin:0;">
+      {{ diff_summary }}
+    </p>
+  </div>
+  <button class="update-banner-close" onclick="document.getElementById('update-banner').remove()">
+    <i class="ph ph-x"></i>
+  </button>
+</div>
+{% endif %}
+
+<!-- ══ PAGE HEADER ══ -->
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4 a-up">
+  <div>
+    <div class="mm-bc">
+      <a href="/"><i class="ph ph-house" style="font-size:15px;"></i></a>
+      <span class="mm-bc-sep">›</span>
+      <a href="/assessments/">Assessments</a>
+      <span class="mm-bc-sep">›</span>
+      <span class="mono" style="font-size:12px;color:var(--ink-3);">{{ assessment.id }}</span>
     </div>
-    
-    <div class="d-flex gap-2">
-        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 fs-6 rounded-pill d-flex align-items-center gap-1">
-            <i class="material-icons-outlined fs-5">check_circle</i> Playbook Ready
-        </span>
-        <button class="btn btn-outline-secondary d-flex align-items-center gap-2 rounded-pill px-4">
-            <i class="material-icons-outlined">download</i> Export PDF
+    <h1 class="page-title">{{ assessment.name }}</h1>
+    <p class="page-sub">Living Migration Playbook</p>
+  </div>
+  <div class="d-flex align-items-center gap-2 flex-shrink-0 flex-wrap">
+    <div class="version-pill">
+      <span class="live-dot"></span>
+      v{{ version }}.0 · Auto-updating
+    </div>
+    <a href="{% url 'core:playbook_history' assessment.id %}" class="btn-mm btn-ghost" style="font-size:12.5px;">
+      <i class="ph ph-clock-counter-clockwise"></i> History
+    </a>
+    <a href="/assessments/" class="btn-mm btn-ghost" style="font-size:12.5px;">
+      <i class="ph ph-arrow-left"></i> All
+    </a>
+  </div>
+</div>
+
+{% if not playbook %}
+<div style="background:var(--s1);border:1.5px dashed var(--border-d);border-radius:var(--r-xl);padding:3rem;text-align:center;" class="a-up a-up-1">
+  <i class="ph ph-hourglass-medium" style="font-size:48px;color:var(--ink-4);display:block;margin-bottom:1rem;"></i>
+  <h3 style="font-family:var(--f-d);font-size:18px;font-weight:800;margin-bottom:8px;">Playbook not ready yet</h3>
+  <p style="color:var(--ink-3);font-size:13.5px;max-width:380px;margin:0 auto 1.25rem;">The AI agents are still processing. This page will automatically redirect when ready.</p>
+  <a href="/assessments/" class="btn-mm btn-ghost">← Back to Assessments</a>
+</div>
+
+{% else %}
+
+<!-- ══ MAIN CARD ══ -->
+<div class="card-mm a-up a-up-1" style="overflow:hidden;">
+
+  <!-- Tab Bar -->
+  <div class="mm-tabs">
+    <button class="mm-tab active" data-tab="map">
+      <i class="ph ph-graph"></i> Dependency Map
+    </button>
+    <button class="mm-tab" data-tab="waves">
+      <i class="ph ph-kanban"></i> Migration Waves
+    </button>
+    <button class="mm-tab" data-tab="business">
+      <i class="ph ph-chart-line-up"></i> Business Case
+    </button>
+    <button class="mm-tab" data-tab="risk">
+      <i class="ph ph-shield-warning"></i>
+      Risk & Compliance
+      {% if total_blocking > 0 %}
+      <span style="background:var(--coral);color:white;border-radius:999px;padding:1px 7px;font-size:10px;font-family:var(--f-m);">{{ total_blocking }}</span>
+      {% endif %}
+    </button>
+    <button class="mm-tab" data-tab="agents">
+      <i class="ph ph-terminal"></i> Agent Log
+    </button>
+  </div>
+
+  <!-- ── TAB 1: Dependency Map ── -->
+  <div class="mm-pane active" id="tab-map">
+    <div style="display:grid;grid-template-columns:1fr 260px;min-height:580px;">
+
+      <!-- 3D Canvas -->
+      <div style="position:relative;background:#0d1117;border-radius:0 0 0 var(--r-xl);overflow:hidden;">
+        <canvas id="graph3d" style="width:100%;height:580px;display:block;"></canvas>
+        <!-- HUD controls -->
+        <div style="position:absolute;bottom:14px;left:14px;display:flex;gap:6px;">
+          <button id="graph-reset" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:7px;padding:5px 11px;font-family:var(--f-m);font-size:11px;cursor:pointer;backdrop-filter:blur(4px);transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+            <i class="ph ph-crosshair-simple" style="font-size:13px;vertical-align:middle;margin-right:3px;"></i>Reset View
+          </button>
+          <button id="graph-toggle-anim" style="background:rgba(0,194,120,0.2);border:1px solid rgba(0,194,120,0.4);color:rgba(0,194,120,0.9);border-radius:7px;padding:5px 11px;font-family:var(--f-m);font-size:11px;cursor:pointer;backdrop-filter:blur(4px);transition:all 0.15s;">
+            <i class="ph ph-pause" style="font-size:13px;vertical-align:middle;margin-right:3px;" id="anim-icon"></i><span id="anim-label">Pause</span>
+          </button>
+        </div>
+        <!-- Node tooltip -->
+        <div id="node-tooltip" style="position:absolute;display:none;background:rgba(13,17,23,0.92);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 14px;font-family:var(--f-m);font-size:12px;color:white;pointer-events:none;backdrop-filter:blur(8px);max-width:200px;z-index:10;">
+          <p id="tt-name" style="font-weight:700;margin-bottom:4px;color:#34d399;font-size:13px;"></p>
+          <p id="tt-type" style="opacity:0.6;margin-bottom:3px;"></p>
+          <p id="tt-deps" style="opacity:0.5;font-size:11px;"></p>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="graph-sidebar">
+        <p class="eyebrow" style="margin-bottom:10px;">Surveyor Agent Output</p>
+        <p style="font-size:13px;color:var(--ink-2);line-height:1.7;margin-bottom:1.25rem;">
+          Built by the <strong style="color:var(--teal-d);">Surveyor Agent</strong>. Spheres float in 3D space — edges show runtime dependencies that govern wave ordering.
+        </p>
+        <p class="eyebrow" style="margin-bottom:8px;">Node Types</p>
+        <div style="margin-bottom:1.25rem;">
+          <div class="legend-row">
+            <div style="width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#60a5fa,#1d4ed8);flex-shrink:0;box-shadow:0 0 6px #3b82f6;"></div>
+            Web Application (IIS)
+          </div>
+          <div class="legend-row">
+            <div style="width:14px;height:14px;border-radius:2px;background:radial-gradient(circle at 35% 35%,#f87171,#be123c);flex-shrink:0;box-shadow:0 0 6px #ef4444;"></div>
+            SQL Database
+          </div>
+          <div class="legend-row">
+            <div style="width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fde047,#ca8a04);flex-shrink:0;box-shadow:0 0 6px #eab308;transform:rotate(45deg);"></div>
+            Shared Service (Redis/AD)
+          </div>
+        </div>
+        <p class="eyebrow" style="margin-bottom:8px;">Controls</p>
+        <p style="font-size:12px;color:var(--ink-3);line-height:1.8;">
+          <strong style="color:var(--ink-2);">Drag</strong> — orbit camera<br>
+          <strong style="color:var(--ink-2);">Scroll</strong> — zoom in/out<br>
+          <strong style="color:var(--ink-2);">Hover node</strong> — inspect<br>
+          <strong style="color:var(--ink-2);">Right drag</strong> — pan
+        </p>
+        <div style="margin-top:1.5rem;padding:12px;background:var(--s1);border-radius:var(--r-md);border:1px solid var(--border);">
+          <p style="font-family:var(--f-m);font-size:10.5px;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-4);margin-bottom:6px;">Graph Stats</p>
+          <p style="font-size:13px;color:var(--ink-2);" id="graph-stats">Loading...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 2: Migration Waves ── -->
+  <div class="mm-pane" id="tab-waves">
+    <div style="padding:1.75rem 2rem;">
+      <div class="sec-hdr">
+        <div>
+          <p class="sec-title">Migration Wave Sequencing</p>
+          <p class="sec-sub">{{ playbook.architect.summary }}</p>
+        </div>
+        <span class="badge-mm badge-teal"><i class="ph ph-sparkle" style="font-size:12px;"></i> GPT-4o Sequenced</span>
+      </div>
+      <div class="row g-3">
+        {% for wave in playbook.architect.waves %}
+        <div class="col-md-4">
+          <div class="wave-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+              <span class="wave-num"><i class="ph ph-wave-triangle" style="font-size:12px;"></i> Wave {{ wave.wave_number }}</span>
+              <span style="font-family:var(--f-m);font-size:11.5px;color:var(--ink-3);display:flex;align-items:center;gap:4px;">
+                <i class="ph ph-clock" style="font-size:14px;"></i> {{ wave.duration_days }}d
+              </span>
+            </div>
+            <h5 style="font-family:var(--f-d);font-size:15px;font-weight:800;margin-bottom:5px;letter-spacing:-0.3px;">{{ wave.name }}</h5>
+            <p style="font-size:12.5px;color:var(--ink-3);line-height:1.6;margin-bottom:1.25rem;">{{ wave.reasoning }}</p>
+            <p class="eyebrow" style="margin-bottom:8px;">Assets in wave</p>
+            <ul class="asset-list" style="margin-bottom:1.25rem;">
+              {% for asset in wave.assets %}
+              <li><span>{{ asset }}</span><i class="ph ph-hard-drives"></i></li>
+              {% endfor %}
+            </ul>
+            {% if wave.wave_number == 1 %}
+            <button class="btn-mm btn-teal btn-full btn-complete-wave" data-wave="{{ wave.wave_number }}">
+              <i class="ph ph-check-circle"></i> Mark Completed
+            </button>
+            {% else %}
+            <button class="btn-mm btn-ghost btn-full" disabled style="opacity:0.4;cursor:not-allowed;">
+              <i class="ph ph-lock"></i> Awaiting previous wave
+            </button>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 3: Business Case ── -->
+  <div class="mm-pane" id="tab-business">
+    <div style="padding:1.75rem 2rem;">
+      <div class="sec-hdr">
+        <div>
+          <p class="sec-title">Live ROI & Financial Analysis</p>
+          <p class="sec-sub">{{ playbook.accountant.summary }}</p>
+        </div>
+        <span class="badge-mm badge-teal"><i class="ph ph-wifi-high" style="font-size:12px;"></i> Live Azure Pricing</span>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="kpi-card">
+            <p class="kpi-label">3-Year NPV</p>
+            <p class="kpi-value" style="color:var(--teal-d);">${{ playbook.accountant.total_business_case.three_year_npv|floatformat:0 }}</p>
+            <p style="font-size:12px;color:var(--ink-4);margin-top:8px;">Net present value over 36 months</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="kpi-card">
+            <p class="kpi-label">ROI Breakeven</p>
+            <p class="kpi-value" style="color:var(--amber-d);">{{ playbook.accountant.total_business_case.roi_month }}<span style="font-size:18px;font-weight:500;color:var(--ink-4);"> mo</span></p>
+            <p style="font-size:12px;color:var(--ink-4);margin-top:8px;">Months until investment recovered</p>
+          </div>
+        </div>
+      </div>
+      <div style="border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
+        <table class="tbl-mm">
+          <thead>
+            <tr>
+              <th>Wave</th><th>Pricing Source</th>
+              <th style="text-align:right;">Current / mo</th>
+              <th style="text-align:right;">Azure / mo</th>
+              <th style="text-align:right;">Savings</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cost in playbook.accountant.per_wave_costs %}
+            <tr>
+              <td><span class="badge-mm badge-blue">Wave {{ cost.wave_number }}</span></td>
+              <td><span class="badge-mm badge-gray">{{ cost.pricing_source }}</span></td>
+              <td style="text-align:right;" class="num-red">${{ cost.current_monthly_cost|floatformat:2 }}</td>
+              <td style="text-align:right;" class="num-teal">${{ cost.projected_monthly_cost|floatformat:2 }}</td>
+              <td style="text-align:right;" class="num-blue">${{ cost.estimated_savings|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 4: Risk & Compliance ── -->
+  <div class="mm-pane" id="tab-risk">
+    <div style="padding:1.75rem 2rem;">
+
+      <!-- Compliance Score bar -->
+      <div class="compliance-bar-wrap mb-4">
+        <div>
+          <p class="kpi-label" style="margin-bottom:4px;">Compliance Score</p>
+          <p class="compliance-score-num"
+             style="color:{% if compliance_score >= 80 %}var(--teal-d){% elif compliance_score >= 50 %}var(--amber-d){% else %}var(--coral-d){% endif %};">
+            {{ compliance_score }}%
+          </p>
+        </div>
+        <div style="flex:1;">
+          <div class="compliance-bar-track">
+            <div class="compliance-bar-fill" id="compliance-fill"
+                 style="width:0%;background:{% if compliance_score >= 80 %}var(--teal){% elif compliance_score >= 50 %}var(--amber){% else %}var(--coral){% endif %};">
+            </div>
+          </div>
+          <div class="compliance-legend mt-2">
+            <span class="compliance-legend-item"><span class="cl-dot" style="background:var(--coral);"></span> {{ total_blocking }} blocking</span>
+            <span class="compliance-legend-item"><span class="cl-dot" style="background:var(--amber);"></span> {{ total_warnings }} warnings</span>
+            <span class="compliance-legend-item"><span class="cl-dot" style="background:var(--teal);"></span> {{ playbook.architect.total_waves }} waves evaluated</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-hdr">
+        <div>
+          <p class="sec-title">Risk Cards</p>
+          <p class="sec-sub">Generated by the Risk Officer Agent — deterministic Python rules fire first, GPT-4o explains and recommends remediation.</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        {% for risk in playbook.risk.wave_risk_cards %}
+        <div class="col-md-6">
+          <div class="risk-card {% if risk.is_blocking %}blocking{% else %}warning{% endif %}">
+            <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:1rem;">
+              <div style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;
+                background:{% if risk.is_blocking %}var(--coral-pale){% else %}var(--amber-pale){% endif %};
+                color:{% if risk.is_blocking %}var(--coral-d){% else %}var(--amber-d){% endif %};">
+                <i class="ph {% if risk.is_blocking %}ph-prohibit{% else %}ph-warning-octagon{% endif %}"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px;">
+                  {% if risk.is_blocking %}
+                  <span class="badge-mm badge-coral">BLOCKING</span>
+                  {% else %}
+                  <span class="badge-mm badge-amber">WARNING</span>
+                  {% endif %}
+                  <span class="badge-mm badge-gray">Wave {{ risk.wave_number }}</span>
+                </div>
+                <p style="font-family:var(--f-d);font-size:15px;font-weight:800;color:var(--ink);margin:0;letter-spacing:-0.3px;">{{ risk.risk_type }}</p>
+              </div>
+            </div>
+            <p style="font-size:13px;color:var(--ink-2);line-height:1.65;margin-bottom:1rem;">
+              <span style="font-family:var(--f-m);font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-4);">Observation — </span>
+              {{ risk.description }}
+            </p>
+            <div class="risk-remedy mb-4">
+              <p class="remedy-label"><i class="ph ph-robot" style="font-size:12px;vertical-align:middle;"></i> AI Remediation Plan</p>
+              {{ risk.remediation_plan }}
+            </div>
+            <button class="btn-mm {% if risk.is_blocking %}btn-ghost-coral{% else %}btn-ghost-amber{% endif %} btn-full btn-acknowledge-risk"
+              data-wave="{{ risk.wave_number }}"
+              data-risk-type="{{ risk.risk_type }}"
+              data-blocking="{{ risk.is_blocking }}">
+              <i class="ph ph-thumbs-up"></i> Acknowledge Risk
+            </button>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div style="background:var(--teal-pale);border:1.5px solid var(--teal-mid);border-radius:var(--r-xl);padding:2rem;text-align:center;">
+            <i class="ph ph-shield-check" style="font-size:40px;color:var(--teal-d);display:block;margin-bottom:10px;"></i>
+            <p style="font-family:var(--f-d);font-size:16px;font-weight:800;color:var(--teal-d);margin-bottom:4px;">All Clear</p>
+            <p style="font-size:13.5px;color:var(--teal-d);opacity:0.75;">No compliance or downtime risks detected.</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 5: Agent Log / Thought Stream ── -->
+  <div class="mm-pane" id="tab-agents">
+    <div style="padding:1.75rem 2rem;">
+      <div class="sec-hdr">
+        <div>
+          <p class="sec-title">Agent Thought Stream</p>
+          <p class="sec-sub">Live audit log of every agent run — model, tokens, duration, and reasoning for this assessment.</p>
+        </div>
+        <button class="btn-mm btn-ghost" id="btn-refresh-log" style="font-size:12.5px;">
+          <i class="ph ph-arrows-clockwise"></i> Refresh
         </button>
+      </div>
+
+      <div class="thought-stream" id="thought-stream">
+        {% if agent_runs %}
+          {% for run in agent_runs %}
+          <div class="thought-line">
+            <span class="thought-ts">{{ run.created_at|date:"H:i:s" }}</span>
+            <span class="thought-agent {{ run.agent_name|lower|cut:' '}}">{{ run.agent_name }}</span>
+            <span class="thought-msg">
+              {{ run.logs }}
+              {% if run.duration_ms %}<span style="color:rgba(255,255,255,0.3);"> · {{ run.duration_ms }}ms</span>{% endif %}
+              {% if run.tokens_in %}<span style="color:rgba(255,255,255,0.3);"> · {{ run.tokens_in }}↑ {{ run.tokens_out }}↓ tokens</span>{% endif %}
+              {% if run.model_used %}<span style="color:rgba(255,255,255,0.2);"> · {{ run.model_used }}</span>{% endif %}
+            </span>
+            <span class="{% if run.status == 'success' %}thought-status-ok{% else %}thought-status-fail{% endif %}">
+              {% if run.status == 'success' %}✓{% else %}✗{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="thought-empty">No agent runs recorded yet for this assessment.</p>
+        {% endif %}
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- Main Tabs -->
-<div class="card rounded-4 shadow-sm mb-5">
-    <div class="card-header bg-white border-bottom p-0">
-        <ul class="nav nav-tabs px-4" id="playbookTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active d-flex align-items-center gap-2" id="map-tab" data-bs-toggle="tab" data-bs-target="#map" type="button" role="tab">
-                    <i class="material-icons-outlined">hub</i> Dependency Map
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center gap-2" id="waves-tab" data-bs-toggle="tab" data-bs-target="#waves" type="button" role="tab">
-                    <i class="material-icons-outlined">view_kanban</i> Migration Waves
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center gap-2" id="business-tab" data-bs-toggle="tab" data-bs-target="#business" type="button" role="tab">
-                    <i class="material-icons-outlined">payments</i> Business Case
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center gap-2" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk" type="button" role="tab">
-                    <i class="material-icons-outlined">gavel</i> Risk & Compliance
-                </button>
-            </li>
-        </ul>
-    </div>
-    
-    <div class="card-body p-0">
-        <div class="tab-content" id="playbookTabsContent">
-            
-            <!-- TAB 1: Dependency Map -->
-            <div class="tab-pane fade show active p-0" id="map" role="tabpanel">
-                <div class="row g-0">
-                    <div class="col-lg-9 border-end">
-                        <div id="dependency-network" style="height: 650px; background-color: #f8f9fa;"></div>
-                    </div>
-                    <div class="col-lg-3 p-4">
-                        <h5 class="fw-bold mb-3">Graph Context</h5>
-                        <p class="text-muted small">This adjacency map was generated by the <strong>Surveyor Agent</strong> analyzing network flow logs.</p>
-                        <hr>
-                        <h6 class="fw-bold">Legend</h6>
-                        <ul class="list-unstyled small mt-2 d-flex flex-column gap-2">
-                            <li class="d-flex align-items-center gap-2"><span class="badge bg-primary p-2 rounded-circle"> </span> Web Application</li>
-                            <li class="d-flex align-items-center gap-2"><span class="badge bg-danger p-2 rounded-circle"> </span> Database Server</li>
-                            <li class="d-flex align-items-center gap-2"><span class="badge bg-warning p-2 rounded-circle"> </span> Auth Service</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+</div><!-- /card-mm -->
 
-            <!-- TAB 2: Migration Waves -->
-            <div class="tab-pane fade p-4 p-lg-5" id="waves" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h4 class="fw-bold mb-1">Topological Sort Sequencing</h4>
-                        <p class="text-muted">Generated by the Architect Agent to ensure dependencies are migrated in the correct order.</p>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <!-- Wave 1 (Mock) -->
-                    <div class="col-md-4 mb-4">
-                        <div class="card rounded-4 border-0 bg-light h-100">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between mb-3">
-                                    <span class="badge bg-primary fs-6 rounded-pill px-3">Wave 1</span>
-                                    <span class="text-muted small"><i class="material-icons-outlined align-middle fs-6">schedule</i> 14 Days</span>
-                                </div>
-                                <h5 class="fw-bold">Non-Critical Shared Services</h5>
-                                <p class="small text-muted mb-4">Identity providers and caching layers with no inbound external dependencies.</p>
-                                <ul class="list-group list-group-flush mb-4 rounded-3 border">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-white">
-                                        Auth-Redis-01 <span class="badge bg-secondary rounded-pill">VM</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-white">
-                                        AD-DC-Primary <span class="badge bg-secondary rounded-pill">VM</span>
-                                    </li>
-                                </ul>
-                                <button class="btn btn-primary w-100 rounded-pill btn-complete-wave" data-wave="1">
-                                    Mark Completed
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Wave 2 (Mock) -->
-                    <div class="col-md-4 mb-4">
-                        <div class="card rounded-4 border-0 bg-light h-100 opacity-75">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between mb-3">
-                                    <span class="badge bg-secondary fs-6 rounded-pill px-3">Wave 2</span>
-                                    <span class="text-muted small"><i class="material-icons-outlined align-middle fs-6">schedule</i> 30 Days</span>
-                                </div>
-                                <h5 class="fw-bold">Core Databases</h5>
-                                <p class="small text-muted mb-4">SQL instances supporting the frontend fleet. Moved via Azure Database Migration Service.</p>
-                                <ul class="list-group list-group-flush mb-4 rounded-3 border">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-white">
-                                        Prod-SQL-01 <span class="badge bg-secondary rounded-pill">DB</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-white">
-                                        Inventory-SQL <span class="badge bg-secondary rounded-pill">DB</span>
-                                    </li>
-                                </ul>
-                                <button class="btn btn-outline-secondary w-100 rounded-pill" disabled>Locked (Wait for W1)</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Wave 3 (Mock) -->
-                    <div class="col-md-4 mb-4">
-                        <div class="card rounded-4 border-0 bg-light h-100 opacity-75">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between mb-3">
-                                    <span class="badge bg-secondary fs-6 rounded-pill px-3">Wave 3</span>
-                                    <span class="text-muted small"><i class="material-icons-outlined align-middle fs-6">schedule</i> 10 Days</span>
-                                </div>
-                                <h5 class="fw-bold">Public Web Fleet</h5>
-                                <p class="small text-muted mb-4">Customer-facing applications. Migrated last to point to newly hosted Azure databases.</p>
-                                <ul class="list-group list-group-flush mb-4 rounded-3 border">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-white">
-                                        Web-IIS-01 <span class="badge bg-secondary rounded-pill">App</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-white">
-                                        Web-IIS-02 <span class="badge bg-secondary rounded-pill">App</span>
-                                    </li>
-                                </ul>
-                                <button class="btn btn-outline-secondary w-100 rounded-pill" disabled>Locked</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 3: Business Case -->
-            <div class="tab-pane fade p-4 p-lg-5" id="business" role="tabpanel">
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h4 class="fw-bold">Live ROI & Financials</h4>
-                        <p class="text-muted">Sourced live from the <a href="https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices" target="_blank">Azure Retail Prices API</a> by the Accountant Agent.</p>
-                    </div>
-                </div>
-                
-                <div class="row g-4 mb-5">
-                    <div class="col-md-3">
-                        <div class="card bg-danger bg-opacity-10 border-0 rounded-4 h-100">
-                            <div class="card-body p-4 text-center">
-                                <p class="text-danger fw-bold mb-1">Current On-Prem Cost</p>
-                                <h2 class="fw-bold text-danger mb-0">$14,250<span class="fs-6 fw-normal">/mo</span></h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-success bg-opacity-10 border-0 rounded-4 h-100">
-                            <div class="card-body p-4 text-center">
-                                <p class="text-success fw-bold mb-1">Projected Azure Cost</p>
-                                <h2 class="fw-bold text-success mb-0">$8,120<span class="fs-6 fw-normal">/mo</span></h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-primary bg-opacity-10 border-0 rounded-4 h-100">
-                            <div class="card-body p-4 text-center">
-                                <p class="text-primary fw-bold mb-1">Monthly Savings</p>
-                                <h2 class="fw-bold text-primary mb-0">$6,130<span class="fs-6 fw-normal">/mo</span></h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-warning bg-opacity-10 border-0 rounded-4 h-100">
-                            <div class="card-body p-4 text-center">
-                                <p class="text-warning fw-bold mb-1">ROI Breakeven</p>
-                                <h2 class="fw-bold text-warning mb-0">Month 7</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="table-responsive border rounded-4">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="py-3 px-4">Wave</th>
-                                <th class="py-3">Included Assets</th>
-                                <th class="py-3">Recommended SKU</th>
-                                <th class="py-3 text-end px-4">Est. Azure Monthly</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="px-4 fw-bold">Wave 1</td>
-                                <td>Auth-Redis-01, AD-DC-Primary</td>
-                                <td>Standard_D2s_v3 (x2)</td>
-                                <td class="text-end px-4 fw-bold">$185.40</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 fw-bold">Wave 2</td>
-                                <td>Prod-SQL-01, Inventory-SQL</td>
-                                <td>Azure SQL Managed Instance (8 vCore)</td>
-                                <td class="text-end px-4 fw-bold">$2,450.00</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 fw-bold">Wave 3</td>
-                                <td>Web-IIS-01, Web-IIS-02</td>
-                                <td>App Service Plan (Premium V3)</td>
-                                <td class="text-end px-4 fw-bold">$840.00</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 4: Risk Cards -->
-            <div class="tab-pane fade p-4 p-lg-5" id="risk" role="tabpanel">
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h4 class="fw-bold">Compliance & Risk Deterministic Evaluation</h4>
-                        <p class="text-muted">Rules fired in Python; remediation explained by Azure OpenAI.</p>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <!-- Blocking Risk -->
-                    <div class="col-md-6 mb-4">
-                        <div class="card risk-card border border-danger border-2 rounded-4 h-100 shadow-sm">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    <i class="material-icons-outlined text-danger fs-3">block</i>
-                                    <h5 class="fw-bold text-danger mb-0">BLOCKING: GDPR Data Sovereignty</h5>
-                                </div>
-                                <p class="mb-3"><strong>Trigger:</strong> Database <code>Prod-SQL-01</code> contains column tags matching [PII, EU-Customer]. Current target region is set to <code>East US</code>.</p>
-                                <div class="bg-light p-3 rounded-3 mb-4 text-dark small">
-                                    <strong>AI Remediation Plan:</strong> The target region for Wave 2 must be switched to <code>West Europe</code> or <code>Germany West Central</code> before this migration wave can proceed.
-                                </div>
-                                <button class="btn btn-outline-danger w-100 rounded-pill">Acknowledge & Remediate</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Warning Risk -->
-                    <div class="col-md-6 mb-4">
-                        <div class="card risk-card border border-warning border-2 rounded-4 h-100 shadow-sm">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    <i class="material-icons-outlined text-warning fs-3">warning_amber</i>
-                                    <h5 class="fw-bold text-warning mb-0">WARNING: Downtime Exceeds SLA</h5>
-                                </div>
-                                <p class="mb-3"><strong>Trigger:</strong> Estimated sync time for <code>Inventory-SQL</code> (4.2 TB) over current ExpressRoute bandwidth is 6.5 hours. Max allowed downtime is 4 hours.</p>
-                                <div class="bg-light p-3 rounded-3 mb-4 text-dark small">
-                                    <strong>AI Remediation Plan:</strong> Utilize Azure Data Box for offline seeding, or configure Azure SQL Data Sync for continuous replication prior to cutover weekend.
-                                </div>
-                                <button class="btn btn-warning text-dark w-100 rounded-pill">Request C-Level Sign Off</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
+{{ playbook.dependency_graph|json_script:"graph-data" }}
+{% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    // 1. Initialize Dependency Graph (vis-network)
-    document.addEventListener("DOMContentLoaded", function() {
-        // Data generated by "Surveyor Agent"
-        var nodes = new vis.DataSet([
-            { id: 1, label: "Web-IIS-01\n(App)", shape: "dot", size: 20, color: "#0d6efd" },
-            { id: 2, label: "Web-IIS-02\n(App)", shape: "dot", size: 20, color: "#0d6efd" },
-            { id: 3, label: "Prod-SQL-01\n(DB)", shape: "square", size: 25, color: "#dc3545" },
-            { id: 4, label: "Inventory-SQL\n(DB)", shape: "square", size: 25, color: "#dc3545" },
-            { id: 5, label: "Auth-Redis-01\n(Cache)", shape: "dot", size: 15, color: "#ffc107" },
-            { id: 6, label: "AD-DC-Primary\n(Auth)", shape: "triangle", size: 20, color: "#ffc107" }
-        ]);
+// Tab switching
+document.querySelectorAll('.mm-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.mm-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.mm-pane').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    const pane = document.getElementById('tab-' + this.dataset.tab);
+    if (pane) pane.classList.add('active');
+    if (this.dataset.tab === 'map' && !window._graphReady) initGraph();
+    if (this.dataset.tab === 'risk') animateComplianceBar();
+  });
+});
 
-        var edges = new vis.DataSet([
-            { from: 1, to: 3, arrows: "to", label: "tcp/1433", font: {align: 'middle'} },
-            { from: 2, to: 3, arrows: "to", label: "tcp/1433", font: {align: 'middle'} },
-            { from: 1, to: 4, arrows: "to", label: "tcp/1433", font: {align: 'middle'} },
-            { from: 1, to: 5, arrows: "to", label: "tcp/6379" },
-            { from: 2, to: 5, arrows: "to", label: "tcp/6379" },
-            { from: 3, to: 6, arrows: "to", label: "tcp/389" },
-            { from: 4, to: 6, arrows: "to", label: "tcp/389" }
-        ]);
+// Compliance bar animation
+function animateComplianceBar() {
+  const fill = document.getElementById('compliance-fill');
+  if (!fill || fill._animated) return;
+  fill._animated = true;
+  setTimeout(() => { fill.style.width = fill.parentElement.dataset.score || '{{ compliance_score }}%'; }, 80);
+}
+// Pre-set data attr for animation
+const fill = document.getElementById('compliance-fill');
+if (fill) fill.parentElement.dataset.score = '{{ compliance_score }}%';
+// Animate on first load if risk tab is active
+setTimeout(animateComplianceBar, 400);
 
-        var container = document.getElementById("dependency-network");
-        var data = { nodes: nodes, edges: edges };
-        var options = {
-            physics: {
-                barnesHut: { gravitationalConstant: -3000, centralGravity: 0.3, springLength: 150 }
-            },
-            interaction: { hover: true, tooltipDelay: 200 }
-        };
-        var network = new vis.Network(container, data, options);
-        
-        // Fix for vis.js rendering inside hidden Bootstrap tabs
-        document.getElementById('map-tab').addEventListener('shown.bs.tab', function (e) {
-            network.fit();
-        });
+// Dependency graph — Three.js 3D
+function initGraph() {
+  const el = document.getElementById('graph-data');
+  if (!el || window._graphReady) return;
+  window._graphReady = true;
+
+  let dict = {};
+  try { dict = JSON.parse(el.textContent); } catch(e) { console.error('graph-data parse error', e); return; }
+
+  const canvas = document.getElementById('graph3d');
+  if (!canvas) return;
+
+  // ── Scene setup ──────────────────────────────────────────────────────────
+  // Use offsetWidth/Height which work even when display:none initially
+  const W = canvas.parentElement.offsetWidth || 800;
+  const H = 580;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.width  = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(W, H);
+  renderer.setClearColor(0x0d1117, 1);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 2000);
+  camera.position.set(0, 0, 320);
+
+  // Fog for depth
+  scene.fog = new THREE.FogExp2(0x0d1117, 0.0035);
+
+  // Ambient + point lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+  const pl1 = new THREE.PointLight(0x00c278, 2.5, 600); pl1.position.set(150, 120, 100); scene.add(pl1);
+  const pl2 = new THREE.PointLight(0x3b82f6, 2.0, 500); pl2.position.set(-120, -80, 80); scene.add(pl2);
+  const pl3 = new THREE.PointLight(0x8b5cf6, 1.5, 400); pl3.position.set(0, 150, -80);  scene.add(pl3);
+
+  // Star field background
+  const starGeo = new THREE.BufferGeometry();
+  const starVerts = [];
+  for (let i = 0; i < 1200; i++) {
+    starVerts.push((Math.random()-0.5)*1800, (Math.random()-0.5)*1800, (Math.random()-0.5)*1800);
+  }
+  starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
+  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color:0xffffff, size:1.2, transparent:true, opacity:0.55 })));
+
+  // ── Icon canvas textures ─────────────────────────────────────────────────
+  function makeIconTexture(type) {
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const ctx = c.getContext('2d');
+
+    // Background glow circle
+    const grad = ctx.createRadialGradient(64,64,0, 64,64,56);
+    if (type === 'web') {
+      grad.addColorStop(0, 'rgba(96,165,250,0.95)');
+      grad.addColorStop(0.6, 'rgba(37,99,235,0.85)');
+      grad.addColorStop(1, 'rgba(29,78,216,0.0)');
+    } else if (type === 'db') {
+      grad.addColorStop(0, 'rgba(248,113,113,0.95)');
+      grad.addColorStop(0.6, 'rgba(220,38,38,0.85)');
+      grad.addColorStop(1, 'rgba(190,18,60,0.0)');
+    } else {
+      grad.addColorStop(0, 'rgba(253,224,71,0.95)');
+      grad.addColorStop(0.6, 'rgba(234,179,8,0.85)');
+      grad.addColorStop(1, 'rgba(161,98,7,0.0)');
+    }
+    ctx.beginPath(); ctx.arc(64,64,54,0,Math.PI*2);
+    ctx.fillStyle = grad; ctx.fill();
+
+    // Rim
+    ctx.beginPath(); ctx.arc(64,64,52,0,Math.PI*2);
+    ctx.strokeStyle = type==='web' ? 'rgba(147,197,253,0.9)' : type==='db' ? 'rgba(252,165,165,0.9)' : 'rgba(253,224,71,0.9)';
+    ctx.lineWidth = 3; ctx.stroke();
+
+    // Icon path
+    ctx.fillStyle = 'white'; ctx.font = 'bold 44px Arial';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const icon = type==='web' ? '⬡' : type==='db' ? '▣' : '◆';
+    ctx.fillText(icon, 64, 66);
+
+    return new THREE.CanvasTexture(c);
+  }
+
+  function makeLabel(text, type) {
+    const c = document.createElement('canvas'); c.width=256; c.height=56;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = 'rgba(13,17,23,0.75)';
+    const rr = 10;
+    ctx.beginPath(); ctx.moveTo(rr,0); ctx.lineTo(c.width-rr,0); ctx.quadraticCurveTo(c.width,0,c.width,rr);
+    ctx.lineTo(c.width,c.height-rr); ctx.quadraticCurveTo(c.width,c.height,c.width-rr,c.height);
+    ctx.lineTo(rr,c.height); ctx.quadraticCurveTo(0,c.height,0,c.height-rr); ctx.lineTo(0,rr);
+    ctx.quadraticCurveTo(0,0,rr,0); ctx.closePath(); ctx.fill();
+    const col = type==='web'?'#93c5fd': type==='db'?'#fca5a5':'#fde047';
+    ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle=col; ctx.font='bold 18px "Space Mono",monospace';
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,128,28);
+    return new THREE.CanvasTexture(c);
+  }
+
+  // ── Build graph nodes ────────────────────────────────────────────────────
+  const nodeMap = {}; // name → { mesh, vel, pos, type, deps }
+  const allNames = new Set(Object.keys(dict));
+  Object.values(dict).forEach(deps => deps.forEach(d => allNames.add(d)));
+
+  function classify(name) {
+    if (name.includes('SQL'))   return 'db';
+    if (name.includes('Redis') || name.includes('AD')) return 'shared';
+    return 'web';
+  }
+
+  const nodeGroup = new THREE.Group();
+  scene.add(nodeGroup);
+
+  // Spread nodes in a sphere shell
+  const names = [...allNames];
+  names.forEach((name, i) => {
+    const type = classify(name);
+    const phi   = Math.acos(-1 + (2 * i) / names.length);
+    const theta = Math.sqrt(names.length * Math.PI) * phi;
+    const r = 90 + Math.random() * 30;
+
+    const pos = new THREE.Vector3(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+
+    // Sphere node
+    const geo  = new THREE.SphereGeometry(type==='db'?11:type==='shared'?10:12, 32, 32);
+    const mat  = new THREE.MeshStandardMaterial({
+      map: makeIconTexture(type),
+      roughness: 0.25, metalness: 0.6,
+      emissive: type==='web' ? new THREE.Color(0x1d4ed8) : type==='db' ? new THREE.Color(0x991b1b) : new THREE.Color(0x92400e),
+      emissiveIntensity: 0.35,
     });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(pos);
+    mesh.userData = { name, type, deps: dict[name] || [] };
+    nodeGroup.add(mesh);
 
-    // 2. Handle the "Mark Wave Complete" Living Playbook functionality
-    document.querySelectorAll('.btn-complete-wave').forEach(button => {
-        button.addEventListener('click', function() {
-            const waveNum = this.getAttribute('data-wave');
-            const btn = this;
-            
-            // Show loading state
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating Playbook...`;
-            btn.classList.replace('btn-primary', 'btn-secondary');
-            
-            // In a real flow, this sends a PATCH request to /api/assessments/{id}/waves/{num}/complete/
-            // and then triggers the Agent framework to regenerate the playbook.
-            // For the frontend demo, we will simulate the delay and UI response.
-            setTimeout(() => {
-                btn.innerHTML = '<i class="material-icons-outlined align-middle me-1">check_circle</i> Completed';
-                btn.classList.replace('btn-secondary', 'btn-success');
-                btn.setAttribute('disabled', 'true');
-                
-                alert("Wave 1 Marked Complete! The Architect and Accountant agents are now running in the background to update the dependency map and pricing for remaining assets. (Living Playbook Feature)");
-            }, 1500);
-        });
+    // Glow halo sprite
+    const haloCv = document.createElement('canvas'); haloCv.width=haloCv.height=256;
+    const hctx   = haloCv.getContext('2d');
+    const hg = hctx.createRadialGradient(128,128,0,128,128,128);
+    const gc = (type === 'db') ? [239,68,68] : (type === 'shared') ? [234,179,8] : [59,130,246];
+    hg.addColorStop(0,   `rgba(${gc[0]},${gc[1]},${gc[2]},0.55)`);
+    hg.addColorStop(0.4, `rgba(${gc[0]},${gc[1]},${gc[2]},0.2)`);
+    hg.addColorStop(1,   `rgba(${gc[0]},${gc[1]},${gc[2]},0)`);
+    hctx.fillStyle=hg; hctx.fillRect(0,0,256,256);
+    const haloMat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(haloCv), transparent:true, blending: THREE.AdditiveBlending, depthWrite:false });
+    const halo = new THREE.Sprite(haloMat);
+    halo.scale.set(65,65,1); halo.position.copy(pos);
+    nodeGroup.add(halo);
+
+    // Label sprite
+    const lblTex = makeLabel(name, type);
+    const lblMat = new THREE.SpriteMaterial({ map:lblTex, transparent:true, depthWrite:false });
+    const lbl = new THREE.Sprite(lblMat);
+    lbl.scale.set(80, 17.5, 1);
+    lbl.position.set(pos.x, pos.y - (type==='db'?18:type==='shared'?17:20), pos.z);
+    nodeGroup.add(lbl);
+
+    nodeMap[name] = { mesh, pos: pos.clone(), vel: new THREE.Vector3(), type, halo, lbl };
+  });
+
+  // ── Edges ────────────────────────────────────────────────────────────────
+  const edgeGroup = new THREE.Group();
+  scene.add(edgeGroup);
+
+  function buildEdges() {
+    while (edgeGroup.children.length) edgeGroup.remove(edgeGroup.children[0]);
+    for (const src in dict) {
+      const srcNode = nodeMap[src]; if (!srcNode) continue;
+      dict[src].forEach(tgt => {
+        const tgtNode = nodeMap[tgt]; if (!tgtNode) return;
+        const pts = [];
+        const mid = new THREE.Vector3().addVectors(srcNode.mesh.position, tgtNode.mesh.position).multiplyScalar(0.5);
+        mid.add(new THREE.Vector3((Math.random()-0.5)*40, (Math.random()-0.5)*40, (Math.random()-0.5)*40));
+        for (let t=0; t<=1; t+=0.05) {
+          const p = new THREE.Vector3().lerpVectors(srcNode.mesh.position, mid, t)
+            .lerp(new THREE.Vector3().lerpVectors(mid, tgtNode.mesh.position, t), t);
+          pts.push(p);
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const geo = new THREE.TubeGeometry(curve, 20, 0.8, 6, false);
+        const col = srcNode.type==='web'?0x3b82f6: srcNode.type==='db'?0xef4444:0xeab308;
+        const mat = new THREE.MeshBasicMaterial({ color: col, transparent:true, opacity:0.45, blending: THREE.AdditiveBlending, depthWrite:false });
+        edgeGroup.add(new THREE.Mesh(geo, mat));
+
+        // Arrow head at target
+        const dir  = new THREE.Vector3().subVectors(tgtNode.mesh.position, srcNode.mesh.position).normalize();
+        const aGeo = new THREE.ConeGeometry(2.5, 8, 6);
+        const aMat = new THREE.MeshBasicMaterial({ color: col, transparent:true, opacity:0.7 });
+        const arrow = new THREE.Mesh(aGeo, aMat);
+        const tipPos = tgtNode.mesh.position.clone().sub(dir.clone().multiplyScalar(14));
+        arrow.position.copy(tipPos);
+        arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+        edgeGroup.add(arrow);
+      });
+    }
+  }
+  buildEdges();
+
+  // Stats
+  const nodeCount = Object.keys(nodeMap).length;
+  const edgeCount = Object.values(dict).reduce((s,v)=>s+v.length,0);
+  const statsEl = document.getElementById('graph-stats');
+  if (statsEl) statsEl.innerHTML = `<span style="color:var(--teal-d);font-weight:700;">${nodeCount}</span> nodes · <span style="color:var(--blue-d);font-weight:700;">${edgeCount}</span> edges`;
+
+  // ── Orbit controls (manual implementation) ──────────────────────────────
+  let isDragging=false, isRightDrag=false;
+  let prevMouse = {x:0,y:0};
+  let theta3d=0, phi3d=Math.PI/2.8, radius3d=320;
+  let panX=0, panY=0;
+  let autoRotate=true;
+
+  canvas.addEventListener('mousedown', e => {
+    isDragging=true; isRightDrag=(e.button===2);
+    prevMouse={x:e.clientX,y:e.clientY};
+  });
+  canvas.addEventListener('contextmenu', e=>e.preventDefault());
+  window.addEventListener('mouseup', ()=>isDragging=false);
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) { checkHover(e); return; }
+    const dx=(e.clientX-prevMouse.x)*0.008, dy=(e.clientY-prevMouse.y)*0.008;
+    if (isRightDrag) { panX-=dx*radius3d*0.35; panY+=dy*radius3d*0.35; }
+    else { theta3d-=dx; phi3d=Math.max(0.15,Math.min(Math.PI-0.15,phi3d-dy)); }
+    prevMouse={x:e.clientX,y:e.clientY};
+    updateCamera();
+  });
+  canvas.addEventListener('wheel', e => {
+    radius3d=Math.max(80,Math.min(600,radius3d+e.deltaY*0.4));
+    updateCamera(); e.preventDefault();
+  }, {passive:false});
+
+  // Touch support
+  let lastTouch=null;
+  canvas.addEventListener('touchstart',e=>{lastTouch={x:e.touches[0].clientX,y:e.touches[0].clientY};e.preventDefault();},{passive:false});
+  canvas.addEventListener('touchmove',e=>{
+    if(!lastTouch)return;
+    const dx=(e.touches[0].clientX-lastTouch.x)*0.01,dy=(e.touches[0].clientY-lastTouch.y)*0.01;
+    theta3d-=dx; phi3d=Math.max(0.15,Math.min(Math.PI-0.15,phi3d-dy));
+    lastTouch={x:e.touches[0].clientX,y:e.touches[0].clientY};
+    updateCamera(); e.preventDefault();
+  },{passive:false});
+
+  function updateCamera() {
+    camera.position.set(
+      panX + radius3d*Math.sin(phi3d)*Math.sin(theta3d),
+      panY + radius3d*Math.cos(phi3d),
+      radius3d*Math.sin(phi3d)*Math.cos(theta3d)
+    );
+    camera.lookAt(panX, panY, 0);
+  }
+
+  document.getElementById('graph-reset')?.addEventListener('click',()=>{
+    theta3d=0; phi3d=Math.PI/2.8; radius3d=320; panX=0; panY=0; updateCamera();
+  });
+  document.getElementById('graph-toggle-anim')?.addEventListener('click',()=>{
+    autoRotate=!autoRotate;
+    document.getElementById('anim-icon').className = autoRotate ? 'ph ph-pause' : 'ph ph-play';
+    document.getElementById('anim-label').textContent = autoRotate ? 'Pause' : 'Rotate';
+  });
+
+  // ── Hover / Tooltip ──────────────────────────────────────────────────────
+  const raycaster = new THREE.Raycaster();
+  const mouse2d   = new THREE.Vector2();
+  const tooltip   = document.getElementById('node-tooltip');
+  let hoveredMesh = null;
+
+  function checkHover(e) {
+    if (!tooltip) return;
+    const rect = canvas.getBoundingClientRect();
+    mouse2d.set(
+      ((e.clientX-rect.left)/rect.width)*2-1,
+      -((e.clientY-rect.top)/rect.height)*2+1
+    );
+    raycaster.setFromCamera(mouse2d, camera);
+    const meshes = Object.values(nodeMap).map(n=>n.mesh);
+    const hits   = raycaster.intersectObjects(meshes);
+    if (hits.length>0) {
+      const hit  = hits[0].object;
+      const data = hit.userData;
+      if (hoveredMesh !== hit) {
+        hoveredMesh = hit;
+        document.getElementById('tt-name').textContent = data.name;
+        document.getElementById('tt-type').textContent = data.type==='web'?'Web Application (IIS)': data.type==='db'?'SQL Database':'Shared Service';
+        document.getElementById('tt-deps').textContent = data.deps.length ? `Depends on: ${data.deps.join(', ')}` : 'No outgoing dependencies';
+        tooltip.style.display='block';
+        canvas.style.cursor='pointer';
+      }
+      tooltip.style.left=(e.clientX-canvas.getBoundingClientRect().left+16)+'px';
+      tooltip.style.top =(e.clientY-canvas.getBoundingClientRect().top -20)+'px';
+    } else {
+      hoveredMesh=null; tooltip.style.display='none'; canvas.style.cursor='default';
+    }
+  }
+
+  // ── Spring physics (gentle floating) ────────────────────────────────────
+  const origPositions = {};
+  Object.entries(nodeMap).forEach(([name,n])=>{ origPositions[name]=n.mesh.position.clone(); });
+
+  function springTick(t) {
+    Object.entries(nodeMap).forEach(([name,n]) => {
+      const orig = origPositions[name];
+      const offset = Math.sin(t*0.0008 + name.length*0.7)*3.5;
+      const offsetY= Math.cos(t*0.0006 + name.length*0.9)*2.5;
+      n.mesh.position.set(orig.x+offset, orig.y+offsetY, orig.z+Math.sin(t*0.0005+name.length)*2);
+      n.halo.position.copy(n.mesh.position);
+      n.lbl.position.set(n.mesh.position.x, n.mesh.position.y-(n.type==='db'?18:17), n.mesh.position.z);
+      n.mesh.rotation.y = t*0.001;
     });
+  }
+
+  // ── Render loop ──────────────────────────────────────────────────────────
+  let lastEdgeRebuild=0;
+  function animate(t) {
+    requestAnimationFrame(animate);
+    if (autoRotate) { theta3d+=0.004; updateCamera(); }
+    springTick(t);
+    // Rebuild edges periodically (not every frame — expensive)
+    if (t - lastEdgeRebuild > 120) { buildEdges(); lastEdgeRebuild=t; }
+    // Pulse halo opacity
+    Object.values(nodeMap).forEach(n=>{
+      n.halo.material.opacity = 0.5 + 0.25*Math.sin(t*0.003 + n.mesh.position.x);
+    });
+    renderer.render(scene, camera);
+  }
+  animate(0);
+
+  // Resize
+  window.addEventListener('resize', ()=>{
+    const W2=canvas.clientWidth, H2=canvas.clientHeight;
+    renderer.setSize(W2,H2);
+    camera.aspect=W2/H2; camera.updateProjectionMatrix();
+  });
+}
+// Init graph after a tick so canvas is laid out and visible
+document.addEventListener('DOMContentLoaded', () => setTimeout(initGraph, 120));
+
+// CSRF
+function getCookie(n) {
+  let v=null;
+  document.cookie && document.cookie.split(';').forEach(c => {
+    c=c.trim(); if(c.startsWith(n+'=')) v=decodeURIComponent(c.slice(n.length+1));
+  });
+  return v;
+}
+
+// Complete wave
+document.querySelectorAll('.btn-complete-wave').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const wave = this.dataset.wave;
+    const id = "{{ assessment.id }}";
+    this.innerHTML = '<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite;font-size:16px;"></i> Recalculating...';
+    this.disabled = true; this.style.opacity = '0.6';
+
+    fetch(`/api/assessments/${id}/waves/${wave}/complete/`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(() => {
+      const iv = setInterval(() => {
+        fetch(`/api/assessments/${id}/status/`)
+        .then(r => r.json())
+        .then(d => { if(d.status==='playbook_ready'){clearInterval(iv);window.location.reload();} });
+      }, 3000);
+    })
+    .catch(err => {
+      console.error(err);
+      this.innerHTML = '<i class="ph ph-warning"></i> Error — Retry';
+      this.disabled=false; this.style.opacity='1';
+    });
+  });
+});
+
+// Refresh agent log
+document.getElementById('btn-refresh-log')?.addEventListener('click', function() {
+  const id = "{{ assessment.id }}";
+  const stream = document.getElementById('thought-stream');
+  this.querySelector('i').style.animation = 'spin 0.7s linear infinite';
+
+  fetch(`/api/assessments/${id}/agent-runs/`)
+  .then(r => r.json())
+  .then(data => {
+    this.querySelector('i').style.animation = '';
+    if (!data.runs || data.runs.length === 0) return;
+    stream.innerHTML = data.runs.map(run => {
+      const agentClass = run.agent_name.toLowerCase().replace(/\s+/g,'').replace('officer','');
+      const ts = new Date(run.created_at).toLocaleTimeString('en-US',{hour12:false});
+      return `<div class="thought-line">
+        <span class="thought-ts">${ts}</span>
+        <span class="thought-agent ${agentClass}">${run.agent_name}</span>
+        <span class="thought-msg">${run.logs}
+          ${run.duration_ms ? `<span style="color:rgba(255,255,255,0.3)"> · ${run.duration_ms}ms</span>` : ''}
+          ${run.tokens_in  ? `<span style="color:rgba(255,255,255,0.3)"> · ${run.tokens_in}↑ ${run.tokens_out}↓ tokens</span>` : ''}
+          ${run.model_used ? `<span style="color:rgba(255,255,255,0.2)"> · ${run.model_used}</span>` : ''}
+        </span>
+        <span class="${run.status==='success'?'thought-status-ok':'thought-status-fail'}">${run.status==='success'?'✓':'✗'}</span>
+      </div>`;
+    }).join('');
+    stream.scrollTop = stream.scrollHeight;
+  })
+  .catch(console.error);
+});
+
+// ── Acknowledge Risk ──────────────────────────────────────────────────────
+// Risk cards come from the JSON payload (no DB id in context).
+// We look up the DB RiskCard by wave_number + assessment, then patch it.
+function showRiskToast(msg, ok=true) {
+  const el = document.createElement('div');
+  el.style.cssText = `
+    position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;
+    padding:13px 20px;border-radius:16px;font-family:var(--f-m);font-size:13px;
+    display:flex;align-items:center;gap:9px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.15);
+    animation:fadeUp 0.3s var(--ease) both;
+    ${ok
+      ? 'background:var(--teal-pale);border:1.5px solid var(--teal-mid);color:var(--teal-d);'
+      : 'background:var(--coral-pale);border:1.5px solid var(--coral-mid);color:var(--coral-d);'
+    }
+  `;
+  el.innerHTML = `<i class="ph ${ok ? 'ph-check-circle' : 'ph-warning-circle'}" style="font-size:17px;flex-shrink:0;"></i><span>${msg}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+document.querySelectorAll('.btn-acknowledge-risk').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const assessmentId = "{{ assessment.id }}";
+    const waveNum = this.dataset.wave;
+    const riskType = this.dataset.riskType;
+    const isBlocking = this.dataset.blocking === 'True';
+    const card = this.closest('.risk-card');
+
+    this.innerHTML = '<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite;font-size:16px;"></i> Acknowledging...';
+    this.disabled = true;
+
+    try {
+      // Look up the DB risk card id by wave + assessment via governance endpoint
+      const res = await fetch(`/api/assessments/${assessmentId}/risks/acknowledge/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({
+          wave_number: parseInt(waveNum),
+          risk_type: riskType,
+          signed_by: 'System Administrator'
+        })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        showRiskToast(`${riskType} risk acknowledged ✓`);
+        // Visual: dim the card and replace button
+        card.style.opacity = '0.55';
+        card.style.transition = 'opacity 0.4s';
+        this.innerHTML = '<i class="ph ph-seal-check"></i> Acknowledged';
+        this.style.background = 'var(--teal-pale)';
+        this.style.borderColor = 'var(--teal-mid)';
+        this.style.color = 'var(--teal-d)';
+      } else {
+        throw new Error(data.error || data.message || 'Unknown error');
+      }
+    } catch (e) {
+      showRiskToast(`Error: ${e.message}`, false);
+      this.innerHTML = '<i class="ph ph-thumbs-up"></i> Acknowledge Risk';
+      this.disabled = false;
+    }
+  });
+});
 </script>
 {% endblock %}

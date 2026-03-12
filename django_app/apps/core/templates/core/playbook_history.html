@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block nav_assess %}active{% endblock %}
+
+{% block extra_styles %}
+.timeline { position: relative; padding-left: 2.5rem; }
+.timeline::before {
+  content: ''; position: absolute; left: 11px; top: 0; bottom: 0;
+  width: 2px; background: var(--border);
+}
+
+.tl-item {
+  position: relative; margin-bottom: 1.5rem;
+}
+.tl-item:last-child { margin-bottom: 0; }
+
+.tl-dot {
+  position: absolute; left: -2.5rem; top: 1.4rem;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--border); background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; transition: all 0.2s var(--spring); z-index: 1;
+}
+.tl-item:first-child .tl-dot {
+  border-color: var(--teal); background: var(--teal-pale); color: var(--teal-d);
+  box-shadow: 0 0 0 4px var(--teal-pale);
+}
+
+.tl-card {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xl); padding: 1.5rem;
+  transition: all 0.22s var(--spring);
+}
+.tl-card:hover { border-color: var(--border-d); box-shadow: var(--sh-md); transform: translateX(4px); }
+.tl-item:first-child .tl-card {
+  border-color: var(--teal-mid);
+  background: linear-gradient(135deg, var(--teal-pale) 0%, var(--white) 40%);
+}
+
+.version-tag {
+  font-family: var(--f-m); font-size: 13px; font-weight: 700;
+  color: var(--teal-d); background: var(--teal-pale);
+  border: 1.5px solid var(--teal-mid); border-radius: 6px;
+  padding: 3px 10px; display: inline-block; margin-bottom: 8px;
+}
+.tl-item:not(:first-child) .version-tag { color: var(--ink-3); background: var(--s1); border-color: var(--border); }
+
+.stat-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px; font-family: var(--f-m); font-size: 11px;
+  background: var(--s1); border: 1px solid var(--border); color: var(--ink-3);
+}
+
+.diff-text {
+  font-size: 13px; color: var(--ink-2); line-height: 1.7;
+  padding: 10px 12px; background: var(--s1); border-radius: var(--r-md);
+  border: 1px solid var(--border); margin-top: 10px;
+}
+.diff-text strong { color: var(--teal-d); }
+
+.empty-timeline {
+  text-align: center; padding: 4rem 2rem;
+  background: var(--s1); border-radius: var(--r-xl); border: 1.5px dashed var(--border-d);
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-5 a-up">
+  <div>
+    <div class="mm-bc">
+      <a href="/"><i class="ph ph-house" style="font-size:15px;"></i></a>
+      <span class="mm-bc-sep">›</span>
+      <a href="/assessments/">Assessments</a>
+      <span class="mm-bc-sep">›</span>
+      <a href="{% url 'core:playbook_detail' assessment.id %}" class="mono" style="font-size:12px;">{{ assessment.id }}</a>
+      <span class="mm-bc-sep">›</span>
+      <span style="color:var(--ink-3);">History</span>
+    </div>
+    <h1 class="page-title">Playbook Version History</h1>
+    <p class="page-sub">Every AI-generated version of the living playbook for <strong>{{ assessment.name }}</strong></p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    {% if latest_version %}
+    <a href="{% url 'core:playbook_detail' assessment.id %}" class="btn-mm btn-teal">
+      <i class="ph ph-arrow-square-out"></i> Open Latest (v{{ latest_version.version_number }}.0)
+    </a>
+    {% endif %}
+    <a href="/assessments/" class="btn-mm btn-ghost" style="font-size:12.5px;">
+      <i class="ph ph-arrow-left"></i> Back
+    </a>
+  </div>
+</div>
+
+{% if enriched_versions %}
+
+<!-- SUMMARY STATS -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2.5rem;" class="a-up a-up-1">
+  <div class="card-mm" style="padding:1.25rem;text-align:center;">
+    <p style="font-family:var(--f-d);font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--teal-d);">{{ enriched_versions|length }}</p>
+    <p style="font-family:var(--f-m);font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-4);margin-top:3px;">Versions Generated</p>
+  </div>
+  <div class="card-mm" style="padding:1.25rem;text-align:center;">
+    <p style="font-family:var(--f-d);font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--blue-d);">{{ enriched_versions.0.total_assets }}</p>
+    <p style="font-family:var(--f-m);font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-4);margin-top:3px;">Assets Remaining</p>
+  </div>
+  <div class="card-mm" style="padding:1.25rem;text-align:center;">
+    <p style="font-family:var(--f-d);font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--amber-d);">${{ enriched_versions.0.total_savings|floatformat:0 }}</p>
+    <p style="font-family:var(--f-m);font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-4);margin-top:3px;">Monthly Savings (Latest)</p>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="card-mm a-up a-up-2" style="padding:2rem 2rem 2rem 4rem;">
+  <div class="timeline">
+    {% for item in enriched_versions %}
+    <div class="tl-item">
+      <div class="tl-dot">
+        {% if forloop.first %}
+        <i class="ph ph-star" style="font-size:11px;"></i>
+        {% else %}
+        <i class="ph ph-clock" style="font-size:11px;color:var(--ink-4);"></i>
+        {% endif %}
+      </div>
+
+      <div class="tl-card">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+          <div>
+            <span class="version-tag">v{{ item.version.version_number }}.0</span>
+            {% if forloop.first %}
+            <span class="badge-mm badge-teal ms-2" style="font-size:10.5px;">Latest</span>
+            {% endif %}
+            <p style="font-family:var(--f-d);font-size:15px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">
+              {% if forloop.first %}Current Playbook{% else %}Previous Version{% endif %}
+            </p>
+            <p style="font-family:var(--f-m);font-size:11.5px;color:var(--ink-4);">
+              {{ item.version.created_at|date:"M d, Y" }} at {{ item.version.created_at|date:"h:i A" }} UTC
+            </p>
+          </div>
+          <a href="{% url 'core:playbook_detail' assessment.id %}" class="btn-mm btn-ghost" style="font-size:12px;padding:6px 14px;">
+            <i class="ph ph-arrow-square-out" style="font-size:14px;"></i>
+            {% if forloop.first %}View Playbook{% else %}Archived{% endif %}
+          </a>
+        </div>
+
+        <!-- Stats row -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
+          <span class="stat-chip">
+            <i class="ph ph-kanban" style="font-size:13px;"></i> {{ item.total_waves }} waves
+          </span>
+          <span class="stat-chip">
+            <i class="ph ph-hard-drives" style="font-size:13px;"></i> {{ item.total_assets }} assets
+          </span>
+          <span class="stat-chip" style="color:var(--teal-d);border-color:var(--teal-mid);background:var(--teal-pale);">
+            <i class="ph ph-currency-dollar" style="font-size:13px;"></i> ${{ item.total_savings|floatformat:0 }}/mo savings
+          </span>
+        </div>
+
+        <!-- Diff summary -->
+        {% if item.version.diff_summary %}
+        <div class="diff-text">
+          <i class="ph ph-git-diff" style="font-size:14px;vertical-align:middle;margin-right:4px;color:var(--ink-4);"></i>
+          {{ item.version.diff_summary }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% else %}
+<div class="empty-timeline a-up a-up-1">
+  <i class="ph ph-clock-counter-clockwise" style="font-size:48px;color:var(--ink-4);display:block;margin-bottom:1rem;"></i>
+  <p style="font-family:var(--f-d);font-size:16px;font-weight:800;margin-bottom:6px;">No versions yet</p>
+  <p style="font-size:13px;color:var(--ink-3);max-width:320px;margin:0 auto 1.25rem;">Run the agent pipeline to generate the first playbook version.</p>
+  <a href="/" class="btn-mm btn-teal" style="display:inline-flex;">
+    <i class="ph ph-play-circle"></i> Start Pipeline
+  </a>
+</div>
+{% endif %}
+
+{% endblock %}

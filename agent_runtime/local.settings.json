@@ -4,6 +4,12 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "python",
     "SERVICE_BUS_CONNECTION_STRING": "Endpoint=sb://mig-mind-service-bus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=BfiKlZLNJtMKC4KbMFcNIz3YaS4Ax6gbc+ASbE7NF4k=",
-    "DATABASE_URL": "mysql://adriantennant:admin123%23@startup-flexserver-db.mysql.database.azure.com:3306/migrationmind"
+    "DATABASE_URL": "mysql://adriantennant:admin123%23@startup-flexserver-db.mysql.database.azure.com:3306/migrationmind",
+
+    "AZURE_OPENAI_ENDPOINT": "https://claude-1-resource.cognitiveservices.azure.com",
+    "AZURE_OPENAI_API_KEY": "Fj9CgKCQ0crLyuSpuifQJpIIdegHhF4Mine2sDqrX1GJ9NCHMwHeJQQJ99CCAC4f1cMXJ3w3AAAAACOGscpU",
+    "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-5-chat",
+    "AZURE_OPENAI_API_VERSION": "2025-01-01-preview"
+
   }
 }

@@ -1,4 +1,12 @@
 .aider*
 agent_runtime/venv
 django_app/venv
+agent_runtime/.env
+django_app/.env
+
+# Python bytecode
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
