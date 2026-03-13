@@ -6,7 +6,7 @@ import environ
 env = environ.Env(DEBUG=(bool, True))
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ── .env loading ──
+# .env loading
 env_in_app  = os.path.join(BASE_DIR, '.env')
 env_in_root = os.path.join(BASE_DIR.parent, '.env')
 if os.path.exists(env_in_app):
@@ -22,6 +22,12 @@ SECRET_KEY    = env('DJANGO_SECRET_KEY', default='django-insecure-development-ke
 DEBUG         = env('DEBUG')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '0.0.0.0'])
 
+# Allow Azure App Service health check
+CSRF_TRUSTED_ORIGINS = [
+    'https://mm-django-app.azurewebsites.net',
+    'http://mm-django-app.azurewebsites.net',
+]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',   # ← RIGHT after SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -79,9 +86,13 @@ TIME_ZONE     = 'UTC'
 USE_I18N      = True
 USE_TZ        = True
 
-STATIC_URL    = 'static/'
-STATIC_ROOT   = os.path.join(BASE_DIR, 'staticfiles')
+# ── Static files — WhiteNoise serves these in production ──
+STATIC_URL  = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'apps', 'core', 'static')]
+
+# WhiteNoise: compressed + cached static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -93,15 +104,12 @@ SERVICE_BUS_QUEUE_NAME        = env('SERVICE_BUS_QUEUE_NAME', default='assessmen
 CONTENT_SAFETY_ENDPOINT = env('CONTENT_SAFETY_ENDPOINT', default=None)
 CONTENT_SAFETY_KEY      = env('CONTENT_SAFETY_KEY',      default=None)
 
-# ── Azure Application Insights (OpenTelemetry) ──
+# ── Azure Application Insights ──
 APPLICATIONINSIGHTS_CONNECTION_STRING = env('APPLICATIONINSIGHTS_CONNECTION_STRING', default=None)
 
-# ── Azure Key Vault (optional — override any setting from Key Vault at startup) ──
+# ── Azure Key Vault (optional) ──
 KEY_VAULT_URL = env('KEY_VAULT_URL', default=None)
 
-# Boot-time Key Vault secret injection
-# If KEY_VAULT_URL is set, we pull the canonical secrets from Key Vault and
-# override the env values so the rest of the app just works normally.
 if KEY_VAULT_URL and not DEBUG:
     try:
         from azure.keyvault.secrets import SecretClient
@@ -109,7 +117,6 @@ if KEY_VAULT_URL and not DEBUG:
         kv_client = SecretClient(vault_url=KEY_VAULT_URL, credential=DefaultAzureCredential())
         _kv_map = {
             'django-secret-key':                     'SECRET_KEY',
-            'database-url':                          None,   # handled below
             'service-bus-connection-string':         'SERVICE_BUS_CONNECTION_STRING',
             'content-safety-endpoint':               'CONTENT_SAFETY_ENDPOINT',
             'content-safety-key':                    'CONTENT_SAFETY_KEY',
@@ -127,18 +134,16 @@ if KEY_VAULT_URL and not DEBUG:
     except Exception as e:
         print(f"⚠️  Key Vault load failed (non-fatal): {e}")
 
-# ── App Insights auto-instrumentation ──
 if APPLICATIONINSIGHTS_CONNECTION_STRING:
     try:
         from azure.monitor.opentelemetry import configure_azure_monitor
         configure_azure_monitor(connection_string=APPLICATIONINSIGHTS_CONNECTION_STRING)
-        print("✅ Azure Monitor / App Insights configured via OpenTelemetry")
+        print("✅ Azure Monitor / App Insights configured")
     except ImportError:
-        print("⚠️  azure-monitor-opentelemetry not installed — skipping App Insights")
+        print("⚠️  azure-monitor-opentelemetry not installed — skipping")
     except Exception as e:
         print(f"⚠️  App Insights init failed (non-fatal): {e}")
 
-# ── Logging ──
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

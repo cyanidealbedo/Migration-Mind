@@ -1,0 +1,135 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign In — MigrationMind</title>
+  <link href="{% static 'assets/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <style>
+    :root{--teal:#00C278;--teal-d:#009B61;--teal-pale:#E6FBF3;--teal-mid:#A8F0D4;--blue:#2563EB;--blue-d:#1D4ED8;--blue-pale:#EFF6FF;--blue-mid:#BFDBFE;--coral:#F43F5E;--coral-d:#E11D48;--coral-pale:#FFF1F3;--coral-mid:#FECDD3;--ink:#111110;--ink-2:#3D3D38;--ink-3:#6B6B63;--ink-4:#A8A89E;--border:#E3E2DA;--border-d:#C8C7BC;--cream:#F8F7F2;--s1:#F2F1EC;--f-d:'Epilogue',sans-serif;--f-b:'Plus Jakarta Sans',sans-serif;--f-m:'Space Mono',monospace;--r-md:10px;--r-lg:16px;--r-xl:22px;--sh-lg:0 16px 48px rgba(0,0,0,0.13);}
+    *,*::before,*::after{box-sizing:border-box;}
+    body{font-family:var(--f-b);background:var(--cream);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;-webkit-font-smoothing:antialiased;}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20L20 0' stroke='%23000' stroke-opacity='0.018' stroke-width='1'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+
+    .auth-wrap{width:min(440px,100%);position:relative;z-index:1;}
+    .auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:2rem;text-decoration:none;}
+    .auth-logo-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--teal) 0%,var(--blue) 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,194,120,0.3);}
+    .auth-logo-text{font-family:var(--f-d);font-weight:800;font-size:20px;letter-spacing:-0.5px;color:var(--ink);}
+    .auth-logo-text em{font-style:normal;color:var(--teal);}
+
+    .auth-card{background:white;border:1.5px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-lg);overflow:hidden;}
+    .auth-tab-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1.5px solid var(--border);}
+    .auth-tab{padding:1rem;text-align:center;font-family:var(--f-d);font-size:14px;font-weight:700;color:var(--ink-3);cursor:pointer;transition:all 0.18s;border:none;background:none;letter-spacing:-0.2px;}
+    .auth-tab:hover{color:var(--ink);background:var(--s1);}
+    .auth-tab.active{color:var(--teal-d);background:var(--teal-pale);box-shadow:inset 0 -2px 0 var(--teal);}
+    .auth-body{padding:2rem;}
+    .auth-pane{display:none;}
+    .auth-pane.active{display:block;animation:fadeUp 0.25s ease both;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+    .auth-field{margin-bottom:1.1rem;}
+    .auth-label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:6px;font-family:var(--f-b);}
+    .auth-input{width:100%;padding:11px 14px;border:1.5px solid var(--border-d);border-radius:var(--r-md);font-family:var(--f-b);font-size:14px;color:var(--ink);background:var(--s1);outline:none;transition:border-color 0.15s;}
+    .auth-input:focus{border-color:var(--blue);background:white;box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+    .auth-btn{width:100%;padding:13px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--teal) 0%,var(--blue) 100%);color:white;font-family:var(--f-d);font-size:15px;font-weight:800;letter-spacing:-0.3px;border:none;cursor:pointer;transition:all 0.18s;box-shadow:0 4px 16px rgba(0,194,120,0.3);margin-top:0.25rem;}
+    .auth-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,194,120,0.35);}
+    .auth-btn:active{transform:translateY(0);}
+    .auth-err{background:var(--coral-pale);border:1.5px solid var(--coral-mid);color:var(--coral-d);border-radius:var(--r-md);padding:10px 14px;font-size:13px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+    .auth-hint{font-size:12px;color:var(--ink-4);text-align:center;margin-top:1.25rem;font-family:var(--f-m);}
+
+    .auth-features{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem;}
+    .auth-feat{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2);}
+    .auth-feat i{font-size:16px;color:var(--teal-d);flex-shrink:0;}
+  </style>
+</head>
+<body>
+<div class="auth-wrap">
+  <a href="/" class="auth-logo">
+    <div class="auth-logo-mark">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M2 13L5.5 5.5L8 9L10.5 5.5L14 13" stroke="white" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+    </div>
+    <span class="auth-logo-text">Migration<em>Mind</em></span>
+  </a>
+
+  <div class="auth-card">
+    <div class="auth-tab-row">
+      <button class="auth-tab {% if mode != 'register' %}active{% endif %}" id="tab-login" onclick="switchTab('login')">
+        <i class="ph ph-sign-in" style="font-size:15px;margin-right:5px;"></i>Sign in
+      </button>
+      <button class="auth-tab {% if mode == 'register' %}active{% endif %}" id="tab-register" onclick="switchTab('register')">
+        <i class="ph ph-user-plus" style="font-size:15px;margin-right:5px;"></i>Register
+      </button>
+    </div>
+
+    <div class="auth-body">
+      {% if error %}
+      <div class="auth-err"><i class="ph ph-warning-circle" style="font-size:17px;flex-shrink:0;"></i>{{ error }}</div>
+      {% endif %}
+
+      <!-- LOGIN PANE -->
+      <div class="auth-pane {% if mode != 'register' %}active{% endif %}" id="pane-login">
+        <form method="post" action="/login/">
+          {% csrf_token %}
+          <input type="hidden" name="mode" value="login">
+          <input type="hidden" name="next" value="{{ next }}">
+          <div class="auth-field">
+            <label class="auth-label">Username</label>
+            <input class="auth-input" type="text" name="username" placeholder="your_username" autocomplete="username" required>
+          </div>
+          <div class="auth-field">
+            <label class="auth-label">Password</label>
+            <input class="auth-input" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="auth-btn">
+            <i class="ph ph-sign-in" style="font-size:18px;vertical-align:middle;margin-right:6px;"></i>Sign in to MigrationMind
+          </button>
+        </form>
+        <p class="auth-hint">Don't have an account? <a href="javascript:;" onclick="switchTab('register')" style="color:var(--teal-d);text-decoration:none;font-weight:600;">Create one</a></p>
+      </div>
+
+      <!-- REGISTER PANE -->
+      <div class="auth-pane {% if mode == 'register' %}active{% endif %}" id="pane-register">
+        <div class="auth-features">
+          <div class="auth-feat"><i class="ph ph-graph"></i>3D dependency maps</div>
+          <div class="auth-feat"><i class="ph ph-chart-line-up"></i>Live Azure pricing</div>
+          <div class="auth-feat"><i class="ph ph-shield-check"></i>Compliance scoring</div>
+          <div class="auth-feat"><i class="ph ph-kanban"></i>Wave sequencing</div>
+        </div>
+        <form method="post" action="/login/">
+          {% csrf_token %}
+          <input type="hidden" name="mode" value="register">
+          <div class="auth-field">
+            <label class="auth-label">Display name</label>
+            <input class="auth-input" type="text" name="display_name" placeholder="Jane Smith" autocomplete="name">
+          </div>
+          <div class="auth-field">
+            <label class="auth-label">Username</label>
+            <input class="auth-input" type="text" name="username" placeholder="jane_smith" autocomplete="username" required>
+          </div>
+          <div class="auth-field">
+            <label class="auth-label">Password <span style="color:var(--ink-4);font-weight:400;">(min 6 chars)</span></label>
+            <input class="auth-input" type="password" name="password" placeholder="••••••••" autocomplete="new-password" required>
+          </div>
+          <button type="submit" class="auth-btn" style="background:linear-gradient(135deg,var(--blue) 0%,var(--violet,#8B5CF6) 100%);box-shadow:0 4px 16px rgba(37,99,235,0.3);">
+            <i class="ph ph-rocket-launch" style="font-size:18px;vertical-align:middle;margin-right:6px;"></i>Create Account &amp; Start
+          </button>
+        </form>
+        <p class="auth-hint">Already have an account? <a href="javascript:;" onclick="switchTab('login')" style="color:var(--teal-d);text-decoration:none;font-weight:600;">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function switchTab(t) {
+  document.getElementById('tab-login').classList.toggle('active', t==='login');
+  document.getElementById('tab-register').classList.toggle('active', t==='register');
+  document.getElementById('pane-login').classList.toggle('active', t==='login');
+  document.getElementById('pane-register').classList.toggle('active', t==='register');
+}
+</script>
+</body>
+</html>

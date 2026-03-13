@@ -1,0 +1,119 @@
+name: Deploy Django App to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'django_app/**'
+      - '.github/workflows/deploy-django.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        working-directory: django_app
+        run: |
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Collect static files
+        working-directory: django_app
+        env:
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          DEBUG: "False"
+          ALLOWED_HOSTS: "mm-django-app.azurewebsites.net,localhost"
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SERVICE_BUS_CONNECTION_STRING: ${{ secrets.SERVICE_BUS_CONNECTION_STRING }}
+          SERVICE_BUS_QUEUE_NAME: "assessment-jobs"
+          CONTENT_SAFETY_ENDPOINT: ${{ secrets.CONTENT_SAFETY_ENDPOINT }}
+          CONTENT_SAFETY_KEY: ${{ secrets.CONTENT_SAFETY_KEY }}
+          APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
+        run: |
+          source antenv/bin/activate
+          python manage.py collectstatic --noinput
+
+      - name: Upload artifact for deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: django-app
+          path: |
+            django_app/
+            !django_app/antenv/
+            !django_app/**/__pycache__/
+            !django_app/**/*.pyc
+            !django_app/db.sqlite3
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: django-app
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set App Service settings
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: mm-django-app
+          app-settings-json: |
+            [
+              { "name": "DJANGO_SECRET_KEY",                    "value": "${{ secrets.DJANGO_SECRET_KEY }}",                    "slotSetting": false },
+              { "name": "DEBUG",                                "value": "False",                                               "slotSetting": false },
+              { "name": "ALLOWED_HOSTS",                        "value": "mm-django-app.azurewebsites.net,localhost",           "slotSetting": false },
+              { "name": "DATABASE_URL",                         "value": "${{ secrets.DATABASE_URL }}",                         "slotSetting": false },
+              { "name": "SERVICE_BUS_CONNECTION_STRING",        "value": "${{ secrets.SERVICE_BUS_CONNECTION_STRING }}",        "slotSetting": false },
+              { "name": "SERVICE_BUS_QUEUE_NAME",               "value": "assessment-jobs",                                     "slotSetting": false },
+              { "name": "CONTENT_SAFETY_ENDPOINT",              "value": "${{ secrets.CONTENT_SAFETY_ENDPOINT }}",              "slotSetting": false },
+              { "name": "CONTENT_SAFETY_KEY",                   "value": "${{ secrets.CONTENT_SAFETY_KEY }}",                   "slotSetting": false },
+              { "name": "APPLICATIONINSIGHTS_CONNECTION_STRING", "value": "${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}", "slotSetting": false },
+              { "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",       "value": "true",                                                "slotSetting": false },
+              { "name": "WEBSITE_RUN_FROM_PACKAGE",             "value": "0",                                                   "slotSetting": false }
+            ]
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: mm-django-app
+          slot-name: Production
+          startup-command: "gunicorn --bind=0.0.0.0:8000 --timeout 600 --workers 4 migrationmind.wsgi:application"
+
+      - name: Run migrations via Kudu API
+        run: |
+          CREDS=$(az webapp deployment list-publishing-credentials \
+            --resource-group migrationmind \
+            --name mm-django-app \
+            --query "{user:publishingUserName,pass:publishingPassword}" \
+            -o json)
+          PUB_USER=$(echo $CREDS | python3 -c "import sys,json; print(json.load(sys.stdin)['user'])")
+          PUB_PASS=$(echo $CREDS | python3 -c "import sys,json; print(json.load(sys.stdin)['pass'])")
+          curl -s -X POST \
+            "https://mm-django-app.scm.azurewebsites.net/api/command" \
+            -u "$PUB_USER:$PUB_PASS" \
+            -H "Content-Type: application/json" \
+            -d '{"command":"python manage.py migrate --noinput","dir":"/home/site/wwwroot"}'

@@ -616,6 +616,17 @@ function initGraph() {
   if (!el || window._graphReady) return;
   window._graphReady = true;
 
+  // roundRect polyfill for older browsers
+  if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+      this.beginPath(); this.moveTo(x+r,y); this.lineTo(x+w-r,y);
+      this.quadraticCurveTo(x+w,y,x+w,y+r); this.lineTo(x+w,y+h-r);
+      this.quadraticCurveTo(x+w,y+h,x+w-r,y+h); this.lineTo(x+r,y+h);
+      this.quadraticCurveTo(x,y+h,x,y+h-r); this.lineTo(x,y+r);
+      this.quadraticCurveTo(x,y,x+r,y); this.closePath(); return this;
+    };
+  }
+
   let dict = {};
   try { dict = JSON.parse(el.textContent); } catch(e) { console.error('graph-data parse error', e); return; }
 
@@ -658,39 +669,173 @@ function initGraph() {
   starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
   scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color:0xffffff, size:1.2, transparent:true, opacity:0.55 })));
 
-  // ── Icon canvas textures ─────────────────────────────────────────────────
-  function makeIconTexture(type) {
+  // ── Per-technology icon textures ────────────────────────────────────────
+  // Draws a recognisable icon for each tech type on a 128x128 canvas.
+  // All shapes drawn with native Canvas 2D — zero external images needed.
+
+  function drawAzureIIS(ctx) {
+    // Azure blue gradient + stylised "IIS" window icon
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#0078D4'); g.addColorStop(1,'#50e6ff');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(20,20,88,88,14); ctx.fill();
+    // Window panes
+    ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=4;
+    ctx.strokeRect(32,34,28,26); ctx.strokeRect(66,34,28,26);
+    ctx.strokeRect(32,66,28,26); ctx.strokeRect(66,66,28,26);
+  }
+
+  function drawSQLServer(ctx) {
+    // Red SQL Server cylinder icon
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#CC2936'); g.addColorStop(1,'#8B0000');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(22,22,84,84,14); ctx.fill();
+    // Cylinder top ellipse
+    ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=3.5; ctx.fillStyle='rgba(255,255,255,0.2)';
+    ctx.beginPath(); ctx.ellipse(64,42,28,10,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    // Cylinder body
+    ctx.beginPath(); ctx.moveTo(36,42); ctx.lineTo(36,82); ctx.bezierCurveTo(36,92,92,92,92,82); ctx.lineTo(92,42); ctx.stroke();
+    // Bottom ellipse
+    ctx.beginPath(); ctx.ellipse(64,82,28,10,0,0,Math.PI); ctx.stroke();
+  }
+
+  function drawRedis(ctx) {
+    // Redis — dark red + stack of disks
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#D82C20'); g.addColorStop(1,'#722520');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(22,22,84,84,14); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    [38,54,70].forEach(y=>{
+      ctx.beginPath(); ctx.ellipse(64,y,22,7,0,0,Math.PI*2); ctx.fill();
+    });
+    ctx.fillStyle='rgba(0,0,0,0.2)';
+    [38,54,70].forEach(y=>{
+      ctx.beginPath(); ctx.ellipse(64,y+2,22,5,0,0,Math.PI); ctx.fill();
+    });
+  }
+
+  function drawWindowsServer(ctx) {
+    // Windows — blue bg + 4-pane flag
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#00BCF2'); g.addColorStop(1,'#0063B1');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(22,22,84,84,14); ctx.fill();
+    // 4 flag squares, slight angle
+    ctx.save(); ctx.translate(64,64); ctx.rotate(-0.18);
+    ctx.fillStyle='rgba(255,255,255,0.92)';
+    [[-22,-22],[ 4,-22],[-22, 4],[ 4, 4]].forEach(([x,y])=>{
+      ctx.fillRect(x,y,18,18);
+    });
+    ctx.restore();
+  }
+
+  function drawActiveDirectory(ctx) {
+    // Azure AD — purple/violet
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#8B5CF6'); g.addColorStop(1,'#4F46E5');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(22,22,84,84,14); ctx.fill();
+    // Person + shield
+    ctx.fillStyle='white'; ctx.strokeStyle='white'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(64,46,13,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(39,88); ctx.quadraticCurveTo(39,66,64,66); ctx.quadraticCurveTo(89,66,89,88); ctx.closePath(); ctx.fill();
+  }
+
+  function drawLinux(ctx) {
+    // Linux/Ubuntu — orange
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#E95420'); g.addColorStop(1,'#77216F');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(22,22,84,84,14); ctx.fill();
+    // Tux-style round head
+    ctx.fillStyle='white';
+    ctx.beginPath(); ctx.arc(64,50,18,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(57,46,4,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(71,46,4,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='white';
+    ctx.beginPath(); ctx.moveTo(44,72); ctx.quadraticCurveTo(64,62,84,72); ctx.quadraticCurveTo(64,88,44,72); ctx.fill();
+  }
+
+  function drawNginx(ctx) {
+    // Nginx — green
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#009900'); g.addColorStop(1,'#005500');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(22,22,84,84,14); ctx.fill();
+    ctx.fillStyle='white'; ctx.font='bold 42px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('N',64,66);
+  }
+
+  function drawGenericApp(ctx) {
+    // Generic web app — Azure blue
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#60A5FA'); g.addColorStop(1,'#2563EB');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(22,22,84,84,14); ctx.fill();
+    // Browser chrome
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.fillRect(30,34,68,10);
+    ctx.fillStyle='rgba(255,255,255,0.25)';
+    ctx.fillRect(30,48,68,46);
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.arc(38,39,4,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(50,39,4,0,Math.PI*2); ctx.fill();
+  }
+
+  function drawGenericService(ctx) {
+    // Shared service — amber/yellow
+    const g = ctx.createLinearGradient(20,20,108,108);
+    g.addColorStop(0,'#FCD34D'); g.addColorStop(1,'#D97706');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(22,22,84,84,14); ctx.fill();
+    // Gear icon
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.arc(64,64,16,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.arc(64,64,8,0,Math.PI*2); ctx.fill();
+    // Gear teeth
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    for(let a=0;a<8;a++){
+      ctx.save(); ctx.translate(64,64); ctx.rotate(a*Math.PI/4);
+      ctx.fillRect(-3,14,6,12); ctx.restore();
+    }
+  }
+
+  // Classify by node name → draw function
+  function getIconDrawer(name) {
+    const n = name.toUpperCase();
+    if (n.includes('SQL'))     return drawSQLServer;
+    if (n.includes('REDIS'))   return drawRedis;
+    if (n.includes('AD') || n.includes('ACTIVE') || n.includes('LDAP') || n.includes('AUTH')) return drawActiveDirectory;
+    if (n.includes('IIS') || n.includes('WEB') || n.includes('APP') || n.includes('API'))  return drawAzureIIS;
+    if (n.includes('LINUX') || n.includes('UBUNTU') || n.includes('CENTOS')) return drawLinux;
+    if (n.includes('NGINX') || n.includes('APACHE')) return drawNginx;
+    if (n.includes('WIN') || n.includes('SERVER')) return drawWindowsServer;
+    // Classify by type
+    return null; // fallback handled below
+  }
+
+  function makeIconTexture(type, name) {
     const c = document.createElement('canvas'); c.width = c.height = 128;
     const ctx = c.getContext('2d');
 
-    // Background glow circle
-    const grad = ctx.createRadialGradient(64,64,0, 64,64,56);
-    if (type === 'web') {
-      grad.addColorStop(0, 'rgba(96,165,250,0.95)');
-      grad.addColorStop(0.6, 'rgba(37,99,235,0.85)');
-      grad.addColorStop(1, 'rgba(29,78,216,0.0)');
+    // Try named icon first
+    const drawer = getIconDrawer(name || '');
+    if (drawer) {
+      drawer(ctx);
     } else if (type === 'db') {
-      grad.addColorStop(0, 'rgba(248,113,113,0.95)');
-      grad.addColorStop(0.6, 'rgba(220,38,38,0.85)');
-      grad.addColorStop(1, 'rgba(190,18,60,0.0)');
+      drawSQLServer(ctx);
+    } else if (type === 'shared') {
+      drawGenericService(ctx);
     } else {
-      grad.addColorStop(0, 'rgba(253,224,71,0.95)');
-      grad.addColorStop(0.6, 'rgba(234,179,8,0.85)');
-      grad.addColorStop(1, 'rgba(161,98,7,0.0)');
+      drawGenericApp(ctx);
     }
-    ctx.beginPath(); ctx.arc(64,64,54,0,Math.PI*2);
-    ctx.fillStyle = grad; ctx.fill();
 
-    // Rim
-    ctx.beginPath(); ctx.arc(64,64,52,0,Math.PI*2);
-    ctx.strokeStyle = type==='web' ? 'rgba(147,197,253,0.9)' : type==='db' ? 'rgba(252,165,165,0.9)' : 'rgba(253,224,71,0.9)';
-    ctx.lineWidth = 3; ctx.stroke();
-
-    // Icon path
-    ctx.fillStyle = 'white'; ctx.font = 'bold 44px Arial';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const icon = type==='web' ? '⬡' : type==='db' ? '▣' : '◆';
-    ctx.fillText(icon, 64, 66);
+    // Outer rim highlight
+    ctx.beginPath(); ctx.arc(64,64,60,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=2; ctx.stroke();
 
     return new THREE.CanvasTexture(c);
   }
@@ -698,16 +843,23 @@ function initGraph() {
   function makeLabel(text, type) {
     const c = document.createElement('canvas'); c.width=256; c.height=56;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = 'rgba(13,17,23,0.75)';
+    ctx.fillStyle = 'rgba(13,17,23,0.80)';
     const rr = 10;
     ctx.beginPath(); ctx.moveTo(rr,0); ctx.lineTo(c.width-rr,0); ctx.quadraticCurveTo(c.width,0,c.width,rr);
     ctx.lineTo(c.width,c.height-rr); ctx.quadraticCurveTo(c.width,c.height,c.width-rr,c.height);
     ctx.lineTo(rr,c.height); ctx.quadraticCurveTo(0,c.height,0,c.height-rr); ctx.lineTo(0,rr);
     ctx.quadraticCurveTo(0,0,rr,0); ctx.closePath(); ctx.fill();
-    const col = type==='web'?'#93c5fd': type==='db'?'#fca5a5':'#fde047';
+    const col = type==='db'?'#fca5a5': type==='shared'?'#fde047':'#93c5fd';
     ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.fillStyle=col; ctx.font='bold 18px "Space Mono",monospace';
-    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,128,28);
+    ctx.fillStyle=col; ctx.font='bold 17px "Space Mono",monospace';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    // Truncate long labels
+    const maxW = 230;
+    let label = text;
+    ctx.font='bold 17px "Space Mono",monospace';
+    while(ctx.measureText(label).width > maxW && label.length > 4) label = label.slice(0,-1);
+    if(label !== text) label += '..';
+    ctx.fillText(label,128,28);
     return new THREE.CanvasTexture(c);
   }
 
@@ -742,7 +894,7 @@ function initGraph() {
     // Sphere node
     const geo  = new THREE.SphereGeometry(type==='db'?11:type==='shared'?10:12, 32, 32);
     const mat  = new THREE.MeshStandardMaterial({
-      map: makeIconTexture(type),
+      map: makeIconTexture(type, name),
       roughness: 0.25, metalness: 0.6,
       emissive: type==='web' ? new THREE.Color(0x1d4ed8) : type==='db' ? new THREE.Color(0x991b1b) : new THREE.Color(0x92400e),
       emissiveIntensity: 0.35,

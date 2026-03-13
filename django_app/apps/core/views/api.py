@@ -269,3 +269,32 @@ class PlaybookVersionListAPI(APIView):
             return Response({"versions": list(versions)}, status=status.HTTP_200_OK)
         except Assessment.DoesNotExist:
             return Response({"error": "Assessment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class NotificationsAPI(APIView):
+    """Fetch / mark-read notifications for the current user."""
+
+    def get(self, request):
+        from apps.core.models import Notification
+        if not request.user.is_authenticated:
+            return Response({"notifications": [], "unread_count": 0})
+        notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:30]
+        data = [{
+            "id": n.id, "title": n.title, "body": n.body,
+            "level": n.level, "is_read": n.is_read,
+            "link": n.link, "created_at": n.created_at.isoformat(),
+        } for n in notifs]
+        unread = Notification.objects.filter(user=request.user, is_read=False).count()
+        return Response({"notifications": data, "unread_count": unread})
+
+    def patch(self, request):
+        """Mark all as read."""
+        from apps.core.models import Notification
+        if not request.user.is_authenticated:
+            return Response({"ok": True})
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return Response({"ok": True})
+# NOTE: models.py additions needed:
+# UserProfile(user OneToOne, bio, avatar_data TextField)
+# Notification(user FK, title, body, level choices, is_read bool, link, created_at)
+# Assessment needs user FK (nullable for existing rows)
