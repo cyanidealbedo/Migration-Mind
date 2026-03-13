@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - deploy
+
     paths:
       - 'agent_runtime/**'
       - '.github/workflows/deploy-functions.yml'
@@ -60,3 +60,4 @@ jobs:
           package: agent_runtime
           scm-do-build-during-deployment: true
           enable-oryx-build: true
+
